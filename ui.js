@@ -532,7 +532,7 @@ export default class UI {
             class: 'ui_color',
             value: value,
             var: 'control',
-            attr: { 'colorpick-eyedropper-active': false },
+            attrs: { 'colorpick-eyedropper-active': false },
             also(el) {
                 el.addEventListener('input', () => {
                     if (callback) callback(el.value);
