@@ -23,8 +23,14 @@ class ControlInput {
     get control() {
         return this._data.$control;
     }
-    show(state) {
+    display(state) {
         this._data.$container.style.display = state ? 'block' : 'none';
+    }
+    show() {
+        this.display(1);
+    }
+    hide() {
+        this.display(0);
     }
     remove() {
         this._data.$container.remove();
