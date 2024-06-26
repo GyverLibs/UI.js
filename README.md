@@ -4,12 +4,16 @@
 
 ```js
 // x, y, width, parent, title, zIndex, theme 'dark' | 'light'
-constructor(cfg = {});
+constructor(cfg);
+init(cfg);
+
 setTheme(theme);
 destroy();
 setLabels(labels);
 
+control(id);
 get(id);
+set(id, value);
 remove(id);
 
 toObject();
@@ -28,4 +32,5 @@ addSelect(id, label, value, callback);
 addButton(id, label, callback);
 addButtons(buttons);
 addFile(id, label, callback);
+addColor(id, label, value, callback);
 ```

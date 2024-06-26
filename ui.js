@@ -20,7 +20,7 @@ class ControlInput {
     set value(v) {
         return this._data.$control.value = v;
     }
-    get control() {
+    get input() {
         return this._data.$control;
     }
     display(state) {
@@ -37,6 +37,18 @@ class ControlInput {
     }
     default() {
         this.value = this._data.default;
+        if (this._data.$output) this._data.$output.innerText = this._data.default;
+    }
+}
+class ControlNumber extends ControlInput {
+    constructor(data) {
+        super(data);
+    }
+    set value(v) {
+        return this._data.$control.value = v;
+    }
+    get value() {
+        return Number(this._data.$control.value);
     }
 }
 class ControlCheck extends ControlInput {
@@ -55,23 +67,33 @@ class ControlHtml extends ControlInput {
         super(data);
     }
     get value() {
-        return this._data.$control.innerHtml;
+        return this._data.$control.innerHTML;
     }
     set value(v) {
-        return this._data.$control.innerHtml = v;
+        return this._data.$control.innerHTML = v;
+    }
+}
+class ControlFile extends ControlInput {
+    constructor(data) {
+        super(data);
+    }
+    get value() {
+        return this._data.$control.files[0];
+    }
+    set value(v) {
     }
 }
 class ControlButton extends ControlInput {
     constructor(data) {
         super(data);
     }
+    set value(v) {
+    }
     get value() {
         return 1;
     }
-    set value(v) {
-    }
 }
-class ControlSelect extends ControlInput {
+class ControlSelect extends ControlNumber {
     constructor(data) {
         super(data);
     }
@@ -85,7 +107,17 @@ export default class UI {
      * @param {object} cfg {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
      * @returns {UI}
      */
-    constructor(cfg = {}) {
+    constructor(cfg) {
+        return this.init(cfg);
+    }
+
+    /**
+     * @param {object} cfg {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
+     * @returns {UI}
+     */
+    init(cfg) {
+        if (!cfg || typeof cfg !== 'object') return this;
+
         Component.make('div', {
             class: 'ui_main theme-' + (cfg.theme ?? 'light'),
             style: {
@@ -170,8 +202,16 @@ export default class UI {
      * @param {string} id 
      * @returns {ControlInput}
      */
-    get(id) {
+    control(id) {
         return this.#controls.get(id);
+    }
+
+    get(id) {
+        if (this.#controls.has(id)) return this.#controls.get(id).value;
+    }
+
+    set(id, value) {
+        if (this.#controls.has(id)) return this.#controls.get(id).value = value;
     }
 
     /**
@@ -217,7 +257,7 @@ export default class UI {
                             checked: value,
                             var: 'control',
                             also(el) {
-                                el.addEventListener('click', () => callback({ id: id, value: el.checked }));
+                                if (callback) el.addEventListener('click', () => callback(el.checked));
                             }
                         },
                         {
@@ -240,7 +280,7 @@ export default class UI {
      * @returns {UI}
      */
     addNumber(id, label, value, step, callback) {
-        let data = label ? this._makeContainerOut(label, value) : this._makeContainer(label);
+        let data = this._makeContainerOut(label, value);
         data.default = value;
         Component.make('input', {
             parent: data.$container,
@@ -252,12 +292,12 @@ export default class UI {
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
-                    callback({ id: id, value: el.value });
+                    if (callback) callback(Number(el.value));
                     data.$output.innerText = el.value;
                 });
             }
         });
-        this.#controls.set(id, new ControlInput(data));
+        this.#controls.set(id, new ControlNumber(data));
         return this;
     }
 
@@ -279,7 +319,7 @@ export default class UI {
             value: value,
             var: 'control',
             also(el) {
-                el.addEventListener('input', () => callback({ id: id, value: el.value }));
+                if (callback) el.addEventListener('input', () => callback(el.value));
             }
         });
         this.#controls.set(id, new ControlInput(data));
@@ -297,7 +337,7 @@ export default class UI {
      * @returns {UI}
      */
     addRange(id, label, value, min, max, step, callback) {
-        let data = label ? this._makeContainerOut(label, value) : this._makeContainer(label);
+        let data = this._makeContainerOut(label, value);
         data.default = value;
         Component.make('input', {
             parent: data.$container,
@@ -311,12 +351,12 @@ export default class UI {
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
-                    callback({ id: id, value: el.value });
+                    if (callback) callback(Number(el.value));
                     data.$output.innerText = el.value;
                 });
             }
         });
-        this.#controls.set(id, new ControlInput(data));
+        this.#controls.set(id, new ControlNumber(data));
         return this;
     }
 
@@ -338,7 +378,7 @@ export default class UI {
             value: value,
             var: 'control',
             also(el) {
-                el.addEventListener('input', () => callback({ id: id, value: el.value }));
+                if (callback) el.addEventListener('input', () => callback(el.value));
             }
         });
         this.#controls.set(id, new ControlInput(data));
@@ -395,7 +435,7 @@ export default class UI {
             class: 'ui_select',
             var: 'control',
             also(el) {
-                el.addEventListener('change', () => callback({ id: id, value: el.value }));
+                if (callback) el.addEventListener('change', () => callback(Number(el.value)));
             },
             children: value.map((x, i) => Component.make('option', { text: x, value: i })),
         });
@@ -463,7 +503,7 @@ export default class UI {
                 var: 'control',
                 also(el) {
                     el.addEventListener('change', () => {
-                        callback({ id: id, value: el.files[0] });
+                        if (callback) callback(el.files[0]);
                         data.$filename.innerText = el.files[0].name;
                     });
                 },
@@ -479,7 +519,28 @@ export default class UI {
                 },
             }
         ]));
-        this.#controls.set(id, new ControlInput(data));
+        this.#controls.set(id, new ControlFile(data));
+        return this;
+    }
+
+    addColor(id, label, value, callback) {
+        let data = this._makeContainerOut(label, value);
+        data.default = value;
+        data.$container.append(Component.make('input', {
+            context: data,
+            type: 'color',
+            class: 'ui_color',
+            value: value,
+            var: 'control',
+            attr: { 'colorpick-eyedropper-active': false },
+            also(el) {
+                el.addEventListener('input', () => {
+                    if (callback) callback(el.value);
+                    data.$output.innerText = el.value;
+                });
+            }
+        }));
+        this.#controls.set(id, new ControlNumber(data));
         return this;
     }
 
@@ -490,7 +551,7 @@ export default class UI {
             var: 'control',
             text: label,
             also(el) {
-                el.addEventListener('click', () => callback({ id: id, value: 1 }));
+                if (callback) el.addEventListener('click', () => callback(1));
             }
         });
     }
@@ -532,10 +593,13 @@ export default class UI {
                     children: [
                         {
                             tag: 'b',
-                            var: 'label',
                             text: label,
+                            var: 'label',
                         },
-                        ': ',
+                        {
+                            tag: 'span',
+                            text: ': ',
+                        },
                         {
                             tag: 'span',
                             text: value,
