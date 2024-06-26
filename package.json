@@ -1,0 +1,17 @@
+{
+  "name": "@alexgyver/ui",
+  "version": "1.0.2",
+  "description": "Simple UI builder",
+  "main": "./ui.js",
+  "module": "./ui.js",
+  "types": "./ui.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GyverLibs/UI.js.git"
+  },
+  "author": "AlexGyver <alex@alexgyver.ru>",
+  "license": "MIT",
+  "dependencies": {
+    "@alexgyver/component": "^1.0.12"
+  }
+}
