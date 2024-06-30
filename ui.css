@@ -19,8 +19,6 @@
 .ui_main {
     background-color: var(--mid);
     text-align: left;
-    position: absolute;
-    width: 200px;
     font: 12px sans-serif;
     box-shadow: 5px 5px 8px rgba(0, 0, 0, 0.35);
     user-select: none;
@@ -184,7 +182,6 @@
 }
 
 .ui_select {
-    /* background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAp0lEQVRIS+2SsQ3FIAwF7RVYhA5mgQFhFuhYhJKWL0eKxI8SGylKZ0p4+OBsHGNM+HChAiS7qkgyBKrovaLeOxhjbgtxZ+cFtgelFMg5QwgBvPd/EO5sDbKAlBLUWo/8CjmL075zDmKMj6rEKbpCqBL9aqc4ZUQAhVbInBMQUXz5Vg/WfxOktXZsWWtZLds9uIqlqaH1NFV3jdhSJA47E1CAaE8ViYp+wGiWMZ/T+cgAAAAASUVORK5CYII=') no-repeat right #f6f6f6; */
     background: var(--back);
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -204,10 +201,6 @@
 
 .ui_select option {
     font-size: 14px
-}
-
-.ui_select::-ms-expand {
-    display: none
 }
 
 .ui_select:focus {

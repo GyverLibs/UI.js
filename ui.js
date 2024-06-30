@@ -101,6 +101,17 @@ class ControlSelect extends ControlNumber {
         return this._data.$control.replaceChildren(...options.map((x, i) => Component.make('option', { text: x, value: i })));
     }
 }
+class ControlLabel extends ControlInput {
+    constructor(data) {
+        super(data);
+    }
+    set value(v) {
+        this._data.$control.innerText = v;
+    }
+    get value() {
+        return this._data.$control.innerText;
+    }
+}
 
 export default class UI {
     /**
@@ -112,7 +123,7 @@ export default class UI {
     }
 
     /**
-     * @param {object} cfg {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
+     * @param {object} cfg x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}
      * @returns {UI}
      */
     init(cfg) {
@@ -124,7 +135,8 @@ export default class UI {
                 zIndex: cfg.zIndex ?? 3,
                 left: cfg.x ?? 0,
                 top: cfg.y ?? 0,
-                width: (cfg.width ?? 200) + 'px',
+                width: cfg.width ? ((typeof cfg.width === 'string') ? cfg.width : (cfg.width + 'px')) : '200px',
+                position: cfg.parent ? '' : 'absolute',
             },
             parent: cfg.parent ?? document.body,
             children: [
@@ -145,8 +157,12 @@ export default class UI {
         return this;
     }
 
+    /**
+     * @returns {UI}
+     */
     setTheme(theme) {
         this.$root.classList = 'ui_main theme-' + theme;
+        return this;
     }
 
     /**
@@ -523,6 +539,13 @@ export default class UI {
         return this;
     }
 
+    /**
+     * @param {string} id 
+     * @param {string} label 
+     * @param {string} value 
+     * @param {function} callback 
+     * @returns {UI}
+     */
     addColor(id, label, value, callback) {
         let data = this._makeContainerOut(label, value);
         data.default = value;
@@ -541,6 +564,19 @@ export default class UI {
             }
         }));
         this.#controls.set(id, new ControlNumber(data));
+        return this;
+    }
+
+    /**
+     * @param {string} id 
+     * @param {string} label 
+     * @param {function} callback 
+     * @returns {UI}
+     */
+    addLabel(id, label, value) {
+        let data = this._makeContainerOut(label, value);
+        data.$control = data.$output;
+        this.#controls.set(id, new ControlLabel(data));
         return this;
     }
 
