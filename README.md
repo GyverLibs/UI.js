@@ -4,6 +4,9 @@
 
 Основано на библиотеке [quicksettings](https://github.com/bit101/quicksettings). Переписано с нуля на движке [Component](https://github.com/bit101/quicksettings), изменена логика работы, сохранён оригинальный внешний вид, добавлена тёмная тема.
 
+Примеры проектов с UI:
+- [Bitmaper](https://alexgyver.github.io/Bitmaper/)
+
 ```js
 // {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
 constructor(cfg);
@@ -58,3 +61,7 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
 
 ui.set("code", "some new code");
 ```
+
+Результат
+
+![test](/img/test.png)
