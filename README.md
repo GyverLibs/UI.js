@@ -7,6 +7,7 @@
 Примеры проектов с UI:
 - [Bitmaper](https://alexgyver.github.io/Bitmaper/)
 
+## Дока
 ```js
 // {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
 constructor(cfg);
@@ -41,7 +42,7 @@ addFile(id, label, callback);
 addColor(id, label, value, callback);
 ```
 
-Пример
+## Пример
 ```js
 function file_h(file) {
 }
