@@ -1,8 +1,9 @@
 # UI.js
- 
+Конструктор для создания простого меню настроек
+
 > npm i @alexgyver/ui
 
-Основано на библиотеке [quicksettings](https://github.com/bit101/quicksettings). Переписано с нуля на движке [Component](https://github.com/bit101/quicksettings), изменена логика работы, сохранён оригинальный внешний вид, добавлена тёмная тема.
+Основано на библиотеке [quicksettings](https://github.com/bit101/quicksettings). Переписано с нуля на движке [Component](https://github.com/bit101/quicksettings), изменена логика работы, сохранён оригинальный внешний вид, переработаны стили, сделаны тёмная и светлая темы с удобным переключением.
 
 Примеры проектов с UI:
 - [Bitmaper](https://alexgyver.github.io/Bitmaper/)
