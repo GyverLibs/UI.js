@@ -12,13 +12,13 @@ class ControlInput {
         return this._data.$label.innerText;
     }
     set label(v) {
-        return this._data.$label.innerText = v;
+        return this._data.$label.innerText = v + '';
     }
     get value() {
         return this._data.$control.value;
     }
     set value(v) {
-        return this._data.$control.value = v;
+        return this._data.$control.value = v + '';
     }
     get input() {
         return this._data.$control;
@@ -36,8 +36,8 @@ class ControlInput {
         this._data.$container.remove();
     }
     default() {
-        this.value = this._data.default;
-        if (this._data.$output) this._data.$output.innerText = this._data.default;
+        this.value = this._data.default + '';
+        if (this._data.$output) this._data.$output.innerText = this._data.default + '';
     }
 }
 class ControlNumber extends ControlInput {
@@ -45,7 +45,7 @@ class ControlNumber extends ControlInput {
         super(data);
     }
     set value(v) {
-        return this._data.$control.value = v;
+        return this._data.$control.value = v + '';
     }
     get value() {
         return Number(this._data.$control.value);
@@ -70,7 +70,7 @@ class ControlHtml extends ControlInput {
         return this._data.$control.innerHTML;
     }
     set value(v) {
-        return this._data.$control.innerHTML = v;
+        return this._data.$control.innerHTML = v + '';
     }
 }
 class ControlFile extends ControlInput {
@@ -98,7 +98,7 @@ class ControlSelect extends ControlNumber {
         super(data);
     }
     set options(options) {
-        return this._data.$control.replaceChildren(...options.map((x, i) => Component.make('option', { text: x, value: i })));
+        return this._data.$control.replaceChildren(...options.map((x, i) => Component.make('option', { text: x, value: i + '' })));
     }
 }
 class ControlLabel extends ControlInput {
@@ -106,7 +106,7 @@ class ControlLabel extends ControlInput {
         super(data);
     }
     set value(v) {
-        this._data.$control.innerText = v;
+        this._data.$control.innerText = v + '';
     }
     get value() {
         return this._data.$control.innerText;
@@ -303,8 +303,8 @@ export default class UI {
             context: data,
             type: 'number',
             class: 'ui_text_input ui_number',
-            step: step,
-            value: value,
+            step: step + '',
+            value: value + '',
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
@@ -332,7 +332,7 @@ export default class UI {
             context: data,
             type: 'text',
             class: 'ui_text_input',
-            value: value,
+            value: value + '',
             var: 'control',
             also(el) {
                 if (callback) el.addEventListener('input', () => callback(el.value));
@@ -360,10 +360,10 @@ export default class UI {
             context: data,
             type: 'range',
             class: 'ui_range',
-            value: value,
-            min: min,
-            max: max,
-            step: step,
+            value: value + '',
+            min: min + '',
+            max: max + '',
+            step: step + '',
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
@@ -391,7 +391,7 @@ export default class UI {
             context: data,
             class: 'ui_textarea',
             rows: 5,
-            value: value,
+            value: value + '',
             var: 'control',
             also(el) {
                 if (callback) el.addEventListener('input', () => callback(el.value));
@@ -413,7 +413,7 @@ export default class UI {
         Component.make('div', {
             parent: data.$container,
             context: data,
-            html: value,
+            html: value + '',
             var: 'control',
         });
         this.#controls.set(id, new ControlHtml(data));
@@ -453,7 +453,7 @@ export default class UI {
             also(el) {
                 if (callback) el.addEventListener('change', () => callback(Number(el.value)));
             },
-            children: value.map((x, i) => Component.make('option', { text: x, value: i })),
+            children: value.map((x, i) => Component.make('option', { text: x, value: i + '' })),
         });
         this.#controls.set(id, new ControlSelect(data));
         return this;
@@ -532,10 +532,33 @@ export default class UI {
                 var: 'filename',
                 also(el) {
                     el.addEventListener('click', () => data.$control.click());
+                    el.addEventListener('drop', (e) => {
+                        if (callback) callback(e.dataTransfer.files[0]);
+                        data.$filename.innerText = e.dataTransfer.files[0].name;
+                    });
                 },
             }
         ]));
         this.#controls.set(id, new ControlFile(data));
+
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+            this.$root.addEventListener(ev, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+        ['dragenter', 'dragover'].forEach(e => {
+            this.$root.addEventListener(e, function () {
+                data.$filename.classList.add('active');
+            }, false);
+        });
+        ['dragleave', 'drop'].forEach(e => {
+            this.$root.addEventListener(e, function () {
+                data.$filename.classList.remove('active');
+            }, false);
+        });
+
         return this;
     }
 
@@ -585,7 +608,7 @@ export default class UI {
             context: context,
             class: 'ui_button',
             var: 'control',
-            text: label,
+            text: label + '',
             also(el) {
                 if (callback) el.addEventListener('click', () => callback(1));
             }
@@ -638,7 +661,7 @@ export default class UI {
                         },
                         {
                             tag: 'span',
-                            text: value,
+                            text: value + '',
                             var: 'output',
                         }
                     ]

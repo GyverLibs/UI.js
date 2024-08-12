@@ -272,3 +272,7 @@
     overflow: hidden;
     text-overflow: ellipsis
 }
+
+.ui_file_chooser_label.active {
+    border: 2px solid var(--font);
+}
