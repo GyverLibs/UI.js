@@ -123,11 +123,12 @@ export default class UI {
     }
 
     /**
-     * @param {object} cfg x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}
+     * @param {object} cfg x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar
      * @returns {UI}
      */
     init(cfg) {
         if (!cfg || typeof cfg !== 'object') return this;
+        this.autoVar = cfg.autoVar ?? true;
 
         Component.make('div', {
             class: 'ui_main theme-' + (cfg.theme ?? 'light'),
@@ -222,10 +223,21 @@ export default class UI {
         return this.#controls.get(id);
     }
 
+    /**
+     * Get control value
+     * @param {string} id 
+     * @returns 
+     */
     get(id) {
         if (this.#controls.has(id)) return this.#controls.get(id).value;
     }
 
+    /**
+     * Set control value
+     * @param {string} id 
+     * @param {*} value 
+     * @returns 
+     */
     set(id, value) {
         if (this.#controls.has(id)) return this.#controls.get(id).value = value;
     }
@@ -284,6 +296,7 @@ export default class UI {
             ],
         });
         this.#controls.set(id, new ControlCheck(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -314,6 +327,7 @@ export default class UI {
             }
         });
         this.#controls.set(id, new ControlNumber(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -339,6 +353,7 @@ export default class UI {
             }
         });
         this.#controls.set(id, new ControlInput(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -373,6 +388,7 @@ export default class UI {
             }
         });
         this.#controls.set(id, new ControlNumber(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -398,6 +414,7 @@ export default class UI {
             }
         });
         this.#controls.set(id, new ControlInput(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -417,6 +434,7 @@ export default class UI {
             var: 'control',
         });
         this.#controls.set(id, new ControlHtml(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -432,6 +450,7 @@ export default class UI {
         data.$control = value;
         data.$container.append(value);
         this.#controls.set(id, new ControlHtml(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -456,6 +475,7 @@ export default class UI {
             children: value.map((x, i) => Component.make('option', { text: x, value: i + '' })),
         });
         this.#controls.set(id, new ControlSelect(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -498,7 +518,6 @@ export default class UI {
             data.$label = data.$control;
             this.#controls.set(id, new ControlButton(data));
         }
-
         return this;
     }
 
@@ -560,7 +579,7 @@ export default class UI {
                 data.$filename.classList.remove('active');
             }, false);
         });
-
+        this._addSetGet(id);
         return this;
     }
 
@@ -589,6 +608,7 @@ export default class UI {
             }
         }));
         this.#controls.set(id, new ControlNumber(data));
+        this._addSetGet(id);
         return this;
     }
 
@@ -602,7 +622,16 @@ export default class UI {
         let data = this._makeContainerOut(label, value);
         data.$control = data.$output;
         this.#controls.set(id, new ControlLabel(data));
+        this._addSetGet(id);
         return this;
+    }
+
+    _addSetGet(id) {
+        if (!this.autoVar) return;
+        Object.defineProperty(this, id, {
+            get: () => { return this.get(id) },
+            set: (val) => this.set(id, val),
+        });
     }
 
     _makeButton(context, id, label, callback) {

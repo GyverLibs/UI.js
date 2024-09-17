@@ -62,6 +62,10 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
     .addButton('info', '', info_h);
 
 ui.set("code", "some new code");
+
+// библиотека создаёт сеттер и геттер по id
+ui.link = 'abc';
+console.log(ui.link);
 ```
 
 Результат
