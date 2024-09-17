@@ -324,6 +324,7 @@ export default class UI {
                     if (callback) callback(Number(el.value));
                     data.$output.innerText = el.value;
                 });
+                el.addEventListener('mousewheel', (e) => {});
             }
         });
         this.#controls.set(id, new ControlNumber(data));
