@@ -510,6 +510,11 @@ export default class UI {
      */
     addFile(id, label, callback) {
         let data = this._makeContainer(label);
+        let process = (files) => {
+            if (callback) callback(files.length == 1 ? files[0] : files);
+            data.$filename.innerText = files[0].name;
+        }
+
         data.$container.append(...Component.makeArray([
             {
                 tag: 'input',
@@ -517,11 +522,11 @@ export default class UI {
                 class: 'ui_file_chooser',
                 type: 'file',
                 var: 'control',
+                attrs: {
+                    multiple: true,
+                },
                 also(el) {
-                    el.addEventListener('change', () => {
-                        if (callback) callback(el.files[0]);
-                        data.$filename.innerText = el.files[0].name;
-                    });
+                    el.addEventListener('change', () => process(el.files));
                 },
             },
             {
@@ -532,10 +537,7 @@ export default class UI {
                 var: 'filename',
                 also(el) {
                     el.addEventListener('click', () => data.$control.click());
-                    el.addEventListener('drop', (e) => {
-                        if (callback) callback(e.dataTransfer.files[0]);
-                        data.$filename.innerText = e.dataTransfer.files[0].name;
-                    });
+                    el.addEventListener('drop', (e) => process(e.dataTransfer.files));
                 },
             }
         ]));
