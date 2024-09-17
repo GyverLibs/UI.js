@@ -118,7 +118,7 @@ export default class UI {
      * @param {object} cfg {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
      * @returns {UI}
      */
-    constructor(cfg) {
+    constructor(cfg = {}) {
         return this.init(cfg);
     }
 
@@ -261,6 +261,7 @@ export default class UI {
      * @returns {UI}
      */
     addSwitch(id, label, value, callback) {
+        value = value ?? false;
         let data = { default: value };
 
         Component.make('div', {
@@ -309,22 +310,22 @@ export default class UI {
      * @returns {UI}
      */
     addNumber(id, label, value, step, callback) {
-        let data = this._makeContainerOut(label, value);
+        value = value ?? 0;
+        let data = this._makeContainer(label);
         data.default = value;
         Component.make('input', {
             parent: data.$container,
             context: data,
             type: 'number',
             class: 'ui_text_input ui_number',
-            step: step + '',
+            step: (step ?? 1) + '',
             value: value + '',
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
                     if (callback) callback(Number(el.value));
-                    data.$output.innerText = el.value;
                 });
-                el.addEventListener('mousewheel', (e) => {});
+                el.addEventListener('mousewheel', (e) => { });
             }
         });
         this.#controls.set(id, new ControlNumber(data));
@@ -335,11 +336,12 @@ export default class UI {
     /**
      * @param {string} id 
      * @param {string} label 
-     * @param {number} value 
+     * @param {string} value 
      * @param {function} callback 
      * @returns {UI}
      */
     addText(id, label, value, callback) {
+        value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
         Component.make('input', {
@@ -369,6 +371,7 @@ export default class UI {
      * @returns {UI}
      */
     addRange(id, label, value, min, max, step, callback) {
+        value = value ?? 0;
         let data = this._makeContainerOut(label, value);
         data.default = value;
         Component.make('input', {
@@ -377,14 +380,20 @@ export default class UI {
             type: 'range',
             class: 'ui_range',
             value: value + '',
-            min: min + '',
-            max: max + '',
-            step: step + '',
+            min: (min ?? 0) + '',
+            max: (max ?? 100) + '',
+            step: (step ?? 1) + '',
             var: 'control',
             also(el) {
                 el.addEventListener('input', () => {
                     if (callback) callback(Number(el.value));
                     data.$output.innerText = el.value;
+                });
+                el.addEventListener('mousewheel', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    el.value = Number(el.value) + Number(el.step) * (e.deltaY > 0 ? -1 : 1);
+                    el.dispatchEvent(new Event('input'));
                 });
             }
         });
@@ -396,11 +405,12 @@ export default class UI {
     /**
      * @param {string} id 
      * @param {string} label 
-     * @param {number} value 
+     * @param {string} value 
      * @param {function} callback 
      * @returns {UI}
      */
     addArea(id, label, value, callback) {
+        value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
         Component.make('textarea', {
@@ -422,10 +432,11 @@ export default class UI {
     /**
      * @param {string} id 
      * @param {string} label 
-     * @param {number} value 
+     * @param {string} value 
      * @returns {UI}
      */
     addHTML(id, label, value) {
+        value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
         Component.make('div', {
@@ -442,7 +453,7 @@ export default class UI {
     /**
      * @param {string} id 
      * @param {string} label 
-     * @param {number} value 
+     * @param {HTMLElement} value 
      * @returns {UI}
      */
     addElement(id, label, value) {
@@ -463,6 +474,7 @@ export default class UI {
      * @returns {UI}
      */
     addSelect(id, label, value, callback) {
+        value = value ?? [];
         let data = this._makeContainer(label);
         data.default = 0;
         Component.make('select', {
@@ -592,6 +604,7 @@ export default class UI {
      * @returns {UI}
      */
     addColor(id, label, value, callback) {
+        value = value ?? '#000';
         let data = this._makeContainerOut(label, value);
         data.default = value;
         data.$container.append(Component.make('input', {
@@ -616,10 +629,11 @@ export default class UI {
     /**
      * @param {string} id 
      * @param {string} label 
-     * @param {function} callback 
+     * @param {string} value 
      * @returns {UI}
      */
     addLabel(id, label, value) {
+        value = value ?? '';
         let data = this._makeContainerOut(label, value);
         data.$control = data.$output;
         this.#controls.set(id, new ControlLabel(data));
