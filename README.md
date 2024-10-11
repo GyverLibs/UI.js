@@ -41,6 +41,7 @@ addButton(id, label, callback);
 addButtons(buttons);
 addFile(id, label, callback);
 addColor(id, label, value, callback);
+addSpace();
 ```
 
 ## Пример
@@ -71,3 +72,17 @@ console.log(ui.link);
 Результат
 
 ![test](/img/test.png)
+
+Можно обратиться к виджету как `.control(id)` и получить доступ к
+```js
+get label();    // подпись
+set label(v);   // подпись
+get value();    // значение
+set value(v);   // значение
+get input();    // HTMLElement виджета
+display(state); // скрыть/отобразить
+show();     // отобразить
+hide();     // скрыть
+remove();   // удалить
+default();  // установить значение по умолчанию
+```

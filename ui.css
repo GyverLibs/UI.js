@@ -50,6 +50,10 @@
     color: var(--font);
 }
 
+.ui_space {
+    height: 1px;
+}
+
 .ui_range {
     -webkit-appearance: none;
     -moz-appearance: none;

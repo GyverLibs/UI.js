@@ -645,6 +645,14 @@ export default class UI {
         return this;
     }
 
+    addSpace() {
+        Component.make('div', {
+            class: 'ui_space',
+            parent: this.$content,
+        });
+        return this;
+    }
+
     _addSetGet(id) {
         if (!this.autoVar || !id) return;
         Object.defineProperty(this, id, {
