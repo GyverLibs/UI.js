@@ -45,13 +45,14 @@ class ControlNumber extends ControlInput {
         super(data);
     }
     set value(v) {
+        if (this._data.$output) this._data.$output.innerText = v + '';
         return this._data.$control.value = v + '';
     }
     get value() {
         return Number(this._data.$control.value);
     }
 }
-class ControlCheck extends ControlInput {
+class ControlSwitch extends ControlInput {
     constructor(data) {
         super(data);
     }
@@ -60,6 +61,9 @@ class ControlCheck extends ControlInput {
     }
     set value(v) {
         return this._data.$control.checked = v;
+    }
+    default() {
+        this.value = this._data.default;
     }
 }
 class ControlHtml extends ControlInput {
@@ -296,7 +300,7 @@ export default class UI {
                 }
             ],
         });
-        this.#controls.set(id, new ControlCheck(data));
+        if (id) this.#controls.set(id, new ControlSwitch(data));
         this._addSetGet(id);
         return this;
     }
@@ -328,7 +332,7 @@ export default class UI {
                 el.addEventListener('mousewheel', (e) => { });
             }
         });
-        this.#controls.set(id, new ControlNumber(data));
+        if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
         return this;
     }
@@ -355,7 +359,7 @@ export default class UI {
                 if (callback) el.addEventListener('input', () => callback(el.value));
             }
         });
-        this.#controls.set(id, new ControlInput(data));
+        if (id) this.#controls.set(id, new ControlInput(data));
         this._addSetGet(id);
         return this;
     }
@@ -397,7 +401,7 @@ export default class UI {
                 });
             }
         });
-        this.#controls.set(id, new ControlNumber(data));
+        if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
         return this;
     }
@@ -424,7 +428,7 @@ export default class UI {
                 if (callback) el.addEventListener('input', () => callback(el.value));
             }
         });
-        this.#controls.set(id, new ControlInput(data));
+        if (id) this.#controls.set(id, new ControlInput(data));
         this._addSetGet(id);
         return this;
     }
@@ -445,7 +449,7 @@ export default class UI {
             html: value + '',
             var: 'control',
         });
-        this.#controls.set(id, new ControlHtml(data));
+        if (id) this.#controls.set(id, new ControlHtml(data));
         this._addSetGet(id);
         return this;
     }
@@ -461,7 +465,7 @@ export default class UI {
         data.default = value;
         data.$control = value;
         data.$container.append(value);
-        this.#controls.set(id, new ControlHtml(data));
+        if (id) this.#controls.set(id, new ControlHtml(data));
         this._addSetGet(id);
         return this;
     }
@@ -487,7 +491,7 @@ export default class UI {
             },
             children: value.map((x, i) => Component.make('option', { text: x, value: i + '' })),
         });
-        this.#controls.set(id, new ControlSelect(data));
+        if (id) this.#controls.set(id, new ControlSelect(data));
         this._addSetGet(id);
         return this;
     }
@@ -510,7 +514,7 @@ export default class UI {
             ]
         });
         data.$label = data.$control;
-        this.#controls.set(id, new ControlButton(data));
+        if (id) this.#controls.set(id, new ControlButton(data));
         return this;
     }
 
@@ -529,7 +533,7 @@ export default class UI {
             let data = { $container: container };
             container.append(this._makeButton(data, id, buttons[id][0], buttons[id][1]));
             data.$label = data.$control;
-            this.#controls.set(id, new ControlButton(data));
+            if (id) this.#controls.set(id, new ControlButton(data));
         }
         return this;
     }
@@ -573,7 +577,7 @@ export default class UI {
                 },
             }
         ]));
-        this.#controls.set(id, new ControlFile(data));
+        if (id) this.#controls.set(id, new ControlFile(data));
 
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
@@ -621,7 +625,7 @@ export default class UI {
                 });
             }
         }));
-        this.#controls.set(id, new ControlNumber(data));
+        if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
         return this;
     }
@@ -636,17 +640,21 @@ export default class UI {
         value = value ?? '';
         let data = this._makeContainerOut(label, value);
         data.$control = data.$output;
-        this.#controls.set(id, new ControlLabel(data));
+        if (id) this.#controls.set(id, new ControlLabel(data));
         this._addSetGet(id);
         return this;
     }
 
     _addSetGet(id) {
-        if (!this.autoVar) return;
+        if (!this.autoVar || !id) return;
         Object.defineProperty(this, id, {
             get: () => { return this.get(id) },
             set: (val) => this.set(id, val),
         });
+    }
+
+    _checkID(id) {
+        return id ? id : '_empty_' + this.#count++;
     }
 
     _makeButton(context, id, label, callback) {
@@ -718,4 +726,5 @@ export default class UI {
     }
 
     #controls = new Map();
+    #count = 0;
 }
