@@ -1,4 +1,4 @@
-import { Component } from '@alexgyver/component';
+import { Component, Sheet } from '@alexgyver/component';
 // import './ui.css'
 
 class ControlInput {
@@ -123,12 +123,7 @@ export default class UI {
      * @returns {UI}
      */
     constructor(cfg = {}) {
-        if (!UI._injected) {
-            UI._injected = true;
-            let css = document.createElement("style");
-            css.innerText = ui_css;
-            document.head.appendChild(css);
-        }
+        Sheet.addStyle(ui_css, this);
         return this.init(cfg);
     }
 
@@ -746,8 +741,6 @@ export default class UI {
 
     #controls = new Map();
     #count = 0;
-
-    static _injected = false;
 }
 
 const ui_css = `
