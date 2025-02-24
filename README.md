@@ -3,6 +3,8 @@
 
 > npm i @alexgyver/ui
 
+[demo](https://gyverlibs.github.io/UI.js/test/)
+
 Основано на библиотеке [quicksettings](https://github.com/bit101/quicksettings). Переписано с нуля на движке [Component](https://github.com/bit101/quicksettings), изменена логика работы, сохранён оригинальный внешний вид, переработаны стили, сделаны тёмная и светлая темы с удобным переключением.
 
 Примеры проектов с UI:
