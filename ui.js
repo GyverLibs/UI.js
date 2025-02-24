@@ -1,5 +1,5 @@
-import { Component, Sheet } from '@alexgyver/component';
-// import './ui.css'
+import { Component } from '@alexgyver/component';
+import './ui.css'
 
 class ControlInput {
     _data;
@@ -123,7 +123,6 @@ export default class UI {
      * @returns {UI}
      */
     constructor(cfg = {}) {
-        Sheet.addStyle(ui_css, this);
         return this.init(cfg);
     }
 
@@ -147,12 +146,10 @@ export default class UI {
             parent: cfg.parent ?? document.body,
             children: [
                 {
-                    tag: 'div',
                     class: 'ui_title_bar',
                     text: cfg.title ?? 'UI',
                 },
                 {
-                    tag: 'div',
                     class: 'ui_content',
                     var: 'content',
                 }
@@ -692,7 +689,6 @@ export default class UI {
             parent: this.$content,
             children: [
                 {
-                    tag: 'div',
                     class: 'ui_label',
                     children: [
                         {
@@ -715,7 +711,6 @@ export default class UI {
             parent: this.$content,
             children: [
                 {
-                    tag: 'div',
                     class: 'ui_label',
                     children: [
                         {
@@ -742,288 +737,3 @@ export default class UI {
     #controls = new Map();
     #count = 0;
 }
-
-const ui_css = `
-.ui_main.theme-light {
-    --border: #aaa;
-    --back: #fff;
-    --mid: #ccc;
-    --bright: #eee;
-    --font: #000;
-    --font-mid: #555;
-}
-
-.ui_main.theme-dark {
-    --border: #444c56;
-    --back: rgb(30, 35, 42);
-    --mid: #22272E;
-    --bright: #2D333B;
-    --font: #ccc;
-    --font-mid: #999;
-}
-
-.ui_main {
-    background-color: var(--mid);
-    text-align: left;
-    font: 12px sans-serif;
-    box-shadow: 5px 5px 8px rgba(0, 0, 0, 0.35);
-    user-select: none;
-    -webkit-user-select: none;
-    border: none
-}
-
-.ui_content {
-    background: var(--mid);
-    overflow-y: auto
-}
-
-.ui_title_bar {
-    user-select: none;
-    -webkit-user-select: none;
-    padding: 5px;
-    font-weight: bold;
-    border: none;
-    background: var(--bright);
-    color: var(--font);
-}
-
-.ui_container {
-    margin: 5px;
-    padding: 5px;
-    border: none;
-    position: relative;
-    background: var(--bright);
-    color: var(--font);
-}
-
-.ui_space {
-    height: 1px;
-}
-
-.ui_range {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    width: 100%;
-    height: 17px;
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    border: none;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box
-}
-
-.ui_range:focus {
-    outline: none;
-    border: none
-}
-
-.ui_range::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 15px;
-    cursor: pointer;
-    background: var(--back);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0
-}
-
-.ui_range:focus::-webkit-slider-runnable-track {
-    background: var(--back);
-}
-
-.ui_range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 15px;
-    width: 15px;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-    background: var(--border);
-    cursor: pointer;
-    margin-top: 0
-}
-
-.ui_range::-moz-range-track {
-    width: 100%;
-    height: 15px;
-    cursor: pointer;
-    background: var(--back);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0
-}
-
-.ui_range::-moz-range-thumb {
-    height: 15px;
-    width: 15px;
-    border: none;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-    background: var(--border);
-    cursor: pointer
-}
-
-.ui_button {
-    cursor: pointer;
-    background: var(--mid);
-    color: var(--font-mid);
-    height: 26px;
-    border: 1px solid var(--border);
-    font: 12px sans-serif;
-    margin: 2px;
-}
-
-.ui_button:active {
-    background: var(--back);
-}
-
-.ui_checkbox {
-    cursor: pointer;
-    display: inline
-}
-
-.ui_checkbox input {
-    position: absolute;
-    left: -99999px
-}
-
-.ui_checkbox span {
-    height: 16px;
-    width: 100%;
-    display: block;
-    text-indent: 20px;
-    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALklEQVQ4T2OcOXPmfwYKACPIgLS0NLKMmDVrFsOoAaNhMJoOGBioFwZkZUWoJgApdFaxjUM1YwAAAABJRU5ErkJggg==') no-repeat
-}
-
-.ui_checkbox input:checked+span {
-    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvElEQVQ4T63Tyw2EIBAA0OFKBxBL40wDRovAUACcKc1IB1zZDAkG18GYZTmSmafzgTnnMgwchoDWGlJKheGcP3JtnPceCqCUAmttSZznuYtgchsXQrgC+77DNE0kUpPbmBOoJaBOIVQylnqWgAAeKhDve/AN+EaklJBzhhgjWRoJVGTbNjiOowAIret6a+4jYIwpX8aDwLIs74C2D0IIYIyVP6Gm898m9kbVm85ljHUTf16k4VUefkwDrxk+zoUEwCt0GbUAAAAASUVORK5CYII=') no-repeat
-}
-
-.ui_checkbox_label {
-    position: absolute;
-    top: 7px;
-    left: 30px;
-    pointer-events: none;
-}
-
-.ui_label {
-    margin-bottom: 3px;
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: default;
-    font: 12px sans-serif
-}
-
-.ui_text_input {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    width: 100%;
-    padding: 0 0 0 5px;
-    height: 24px;
-    font-size: 12px;
-    border: 1px inset var(--border);
-    background: var(--back);
-    color: var(--font-mid);
-    outline: none;
-}
-
-.ui_select {
-    background: var(--back);
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    color: var(--font-mid);
-    width: 100%;
-    height: 24px;
-    border: 1px solid var(--border);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-    padding: 0 5px;
-    -moz-outline: none;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.ui_select option {
-    font-size: 14px
-}
-
-.ui_select:focus {
-    outline: none
-}
-
-.ui_number {
-    height: 24px
-}
-
-.ui_textarea {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    resize: vertical;
-    width: 100%;
-    padding: 3px 5px;
-    font-size: 12px;
-    border: 1px inset var(--border);
-    background: var(--back);
-    color: var(--font-mid);
-    outline: none;
-}
-
-.ui_textarea::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-}
-
-.ui_textarea::-webkit-scrollbar-track {
-    background: none;
-}
-
-.ui_textarea::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 3px;
-}
-
-.ui_color {
-    padding: 0;
-    margin: 0;
-    outline: none;
-    cursor: pointer;
-    background: none;
-    border: none;
-    height: 30px;
-    width: 100%;
-}
-
-.ui_file_chooser {
-    position: absolute;
-    left: -999999px
-}
-
-.ui_file_chooser_label {
-    background: var(--back);
-    color: var(--font);
-    height: 30px;
-    border: 1px solid var(--border);
-    font: 12px sans-serif;
-    width: 100%;
-    display: block;
-    cursor: pointer;
-    padding: 7px;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis
-}
-
-.ui_file_chooser_label.active {
-    border: 2px solid var(--font);
-}
-`;
