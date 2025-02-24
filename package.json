@@ -1,17 +1,25 @@
 {
   "name": "@alexgyver/ui",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Simple UI builder",
-  "main": "./ui.js",
-  "module": "./ui.js",
-  "types": "./ui.js",
+  "main": "./UI.js",
+  "module": "./UI.js",
+  "types": "./UI.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GyverLibs/UI.js.git"
   },
   "author": "AlexGyver <alex@alexgyver.ru>",
   "license": "MIT",
+  "scripts": {
+    "build": "webpack --config ./webpack.config.js"
+  },
+  "devDependencies": {
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  },
   "dependencies": {
-    "@alexgyver/component": "^1.3.4"
+    "@alexgyver/component": "^1.3.4",
+    "@alexgyver/utils": "^1.0.4"
   }
 }
