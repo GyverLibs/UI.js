@@ -1,4 +1,4 @@
-import { Component } from '@alexgyver/component';
+import { EL } from '@alexgyver/component';
 import { addStyle } from '@alexgyver/utils';
 // import './ui.css'
 
@@ -103,7 +103,7 @@ class ControlSelect extends ControlNumber {
         super(data);
     }
     set options(options) {
-        return this._data.$control.replaceChildren(...options.map((x, i) => Component.make('option', { text: x, value: i + '' })));
+        return this._data.$control.replaceChildren(...options.map((x, i) => EL.make('option', { text: x, value: i + '' })));
     }
 }
 class ControlLabel extends ControlInput {
@@ -125,10 +125,7 @@ export default class UI {
      * @returns {UI}
      */
     constructor(cfg = {}) {
-        if (UI.css) {
-            addStyle(UI.css);
-            UI.css = null;
-        }
+        UI.css = addStyle(UI.css);
         return this.init(cfg);
     }
 
@@ -140,7 +137,7 @@ export default class UI {
         if (!cfg || typeof cfg !== 'object') return this;
         this.autoVar = cfg.autoVar ?? true;
 
-        Component.make('div', {
+        EL.make('div', {
             class: 'ui_main theme-' + (cfg.theme ?? 'light'),
             style: {
                 zIndex: cfg.zIndex ?? 3,
@@ -276,7 +273,7 @@ export default class UI {
         value = value ?? false;
         let data = { default: value };
 
-        Component.make('div', {
+        EL.make('div', {
             context: data,
             var: 'container',
             class: 'ui_container',
@@ -325,7 +322,7 @@ export default class UI {
         value = value ?? 0;
         let data = this._makeContainer(label);
         data.default = value;
-        Component.make('input', {
+        EL.make('input', {
             parent: data.$container,
             context: data,
             type: 'number',
@@ -356,7 +353,7 @@ export default class UI {
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
-        Component.make('input', {
+        EL.make('input', {
             parent: data.$container,
             context: data,
             type: 'text',
@@ -386,7 +383,7 @@ export default class UI {
         value = value ?? 0;
         let data = this._makeContainerOut(label, value);
         data.default = value;
-        Component.make('input', {
+        EL.make('input', {
             parent: data.$container,
             context: data,
             type: 'range',
@@ -425,7 +422,7 @@ export default class UI {
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
-        Component.make('textarea', {
+        EL.make('textarea', {
             parent: data.$container,
             context: data,
             class: 'ui_textarea',
@@ -451,7 +448,7 @@ export default class UI {
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
-        Component.make('div', {
+        EL.make('div', {
             parent: data.$container,
             context: data,
             html: value + '',
@@ -489,7 +486,7 @@ export default class UI {
         value = value ?? [];
         let data = this._makeContainer(label);
         data.default = 0;
-        Component.make('select', {
+        EL.make('select', {
             parent: data.$container,
             context: data,
             class: 'ui_select',
@@ -497,7 +494,7 @@ export default class UI {
             also(el) {
                 if (callback) el.addEventListener('change', () => callback(Number(el.value)));
             },
-            children: value.map((x, i) => Component.make('option', { text: x, value: i + '' })),
+            children: value.map((x, i) => EL.make('option', { text: x, value: i + '' })),
         });
         if (id) this.#controls.set(id, new ControlSelect(data));
         this._addSetGet(id);
@@ -512,7 +509,7 @@ export default class UI {
      */
     addButton(id, label, callback) {
         let data = {};
-        Component.make('div', {
+        EL.make('div', {
             context: data,
             var: 'container',
             class: 'ui_container',
@@ -531,7 +528,7 @@ export default class UI {
      * @returns {UI}
      */
     addButtons(buttons) {
-        let container = Component.make('div', {
+        let container = EL.make('div', {
             var: 'container',
             class: 'ui_container',
             parent: this.$content,
@@ -559,7 +556,7 @@ export default class UI {
             data.$filename.innerText = files[0].name;
         }
 
-        data.$container.append(...Component.makeArray([
+        data.$container.append(...EL.makeArray([
             {
                 tag: 'input',
                 context: data,
@@ -619,7 +616,7 @@ export default class UI {
         value = value ?? '#000';
         let data = this._makeContainerOut(label, value);
         data.default = value;
-        data.$container.append(Component.make('input', {
+        data.$container.append(EL.make('input', {
             context: data,
             type: 'color',
             class: 'ui_color',
@@ -654,7 +651,7 @@ export default class UI {
     }
 
     addSpace() {
-        Component.make('div', {
+        EL.make('div', {
             class: 'ui_space',
             parent: this.$content,
         });
@@ -675,7 +672,7 @@ export default class UI {
     }
 
     _makeButton(context, id, label, callback) {
-        return Component.make('button', {
+        return EL.make('button', {
             context: context,
             class: 'ui_button',
             var: 'control',
@@ -688,7 +685,7 @@ export default class UI {
 
     _makeContainer(label) {
         let data = {};
-        Component.make('div', {
+        EL.make('div', {
             context: data,
             var: 'container',
             class: 'ui_container',
@@ -710,7 +707,7 @@ export default class UI {
     }
     _makeContainerOut(label, value) {
         let data = {};
-        Component.make('div', {
+        EL.make('div', {
             context: data,
             var: 'container',
             class: 'ui_container',
