@@ -35,6 +35,12 @@
     margin: 5px 0;
 }
 
+.ui_main.noback .ui_title_bar {
+    background: none;
+    text-align: center;
+    padding: 0;
+}
+
 .ui_main.noback .ui_button_cont {
     margin: 5px 0;
 }
@@ -52,6 +58,7 @@
     border: none;
     background: var(--bright);
     color: var(--font);
+    font-size: 14px;
 }
 
 .ui_container {

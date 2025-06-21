@@ -1,7 +1,7 @@
 import UI from "../UI.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-    let ui = new UI({ title: 0, theme: 'light ' })
+    let ui = new UI({ title: 'Test UI', theme: 'light noback' })
         .addFile('file', 'File')
         .addText('text', 'Text', '')
         .addNumber('number', 'Number', 128, 1)
