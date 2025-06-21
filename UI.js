@@ -1,5 +1,5 @@
 import { EL } from '@alexgyver/component';
-import { addStyle } from '@alexgyver/utils';
+import { addStyle, clearNode } from '@alexgyver/utils';
 // import './UI.css'
 
 //#region ControlInput
@@ -152,13 +152,18 @@ export default class UI {
                 cfg.title && {
                     class: 'ui_title_bar',
                     text: cfg.title,
+                    events: {
+                        click: () => {
+                            this.$content.classList.toggle('hidden');
+                        }
+                    }
                 },
                 {
                     class: 'ui_content',
-                    var: 'content',
+                    $: 'content',
                 }
             ],
-            var: 'root',
+            $: 'root',
             context: this,
         });
         return this;
@@ -218,23 +223,19 @@ export default class UI {
     }
 
     /**
-     * Import values {id: value} or widgets [ ['addSwitch', id...] ]
-     * @param {Object | Array} data
+     * Import values {id: value}
+     * @param {Object} data
      */
     fromObject(data) {
-        if (Array.isArray(data)) {
-            for (let w of data) (this[w[0]])(...w.slice(1));
-        } else {
-            for (let id in data) {
-                if (this.#controls.has(id)) {
-                    this.#controls.get(id).value = data[id];
-                }
+        for (let id in data) {
+            if (this.#controls.has(id)) {
+                this.#controls.get(id).value = data[id];
             }
         }
     }
 
     /**
-     * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+     * Import values {id: value}
      * @param {JSON} data
      */
     fromJson(json) {
@@ -270,10 +271,11 @@ export default class UI {
 
     /**
      * Remove control
-     * @param {string | Array} id 
+     * @param {string | Array} id 'id' | ['id']
      */
     remove(ids) {
-        if (!Array.isArray(ids)) ids = [ids];
+        if (typeof ids === 'string') ids = [ids];
+
         for (let id of ids) {
             if (this.#controls.has(id)) {
                 this.#controls.get(id).remove();
@@ -284,6 +286,12 @@ export default class UI {
                 });
             }
         }
+    }
+
+    // Remove all widgets
+    removeAll() {
+        this.remove(Array.from(this.#controls.keys()));
+        clearNode(this.$content);
     }
 
     // Change callback (id, value, text) - text for addSelect only
@@ -306,37 +314,40 @@ export default class UI {
 
         EL.make('div', {
             context: data,
-            var: 'container',
-            class: 'ui_container',
+            $: 'container',
+            class: 'ui_container ui_checkbox_cont',
             parent: this.$content,
             children: [
                 {
                     tag: 'label',
-                    class: 'ui_checkbox_label',
+                    style: 'font-weight: bold',
                     text: label,
-                    var: 'label',
+                    $: 'label',
                 },
                 {
-                    tag: 'label',
+                    tag: 'div',
                     class: 'ui_checkbox',
-                    children: [
-                        {
-                            tag: 'input',
-                            type: 'checkbox',
-                            checked: value,
-                            var: 'control',
-                            events: {
-                                click: (e) => {
-                                    let v = e.target.checked;
-                                    this.#cb(id, v);
-                                    if (callback) callback(v);
+                    child: {
+                        tag: 'label',
+                        children: [
+                            {
+                                tag: 'input',
+                                type: 'checkbox',
+                                checked: value,
+                                $: 'control',
+                                events: {
+                                    click: (e) => {
+                                        let v = e.target.checked;
+                                        this.#cb(id, v);
+                                        if (callback) callback(v);
+                                    }
                                 }
+                            },
+                            {
+                                tag: 'span'
                             }
-                        },
-                        {
-                            tag: 'span'
-                        }
-                    ]
+                        ]
+                    },
                 }
             ],
         });
@@ -362,10 +373,10 @@ export default class UI {
             parent: data.$container,
             context: data,
             type: 'number',
-            class: 'ui_text_input ui_number',
+            class: 'ui_text_input',
             step: (step ?? 1) + '',
             value: value + '',
-            var: 'control',
+            $: 'control',
             events: {
                 input: e => {
                     let v = Number(e.target.value);
@@ -398,7 +409,7 @@ export default class UI {
             type: 'text',
             class: 'ui_text_input',
             value: value + '',
-            var: 'control',
+            $: 'control',
             events: {
                 input: e => {
                     let v = e.target.value;
@@ -436,7 +447,7 @@ export default class UI {
             min: (min ?? 0) + '',
             max: (max ?? 100) + '',
             step: (step ?? 1) + '',
-            var: 'control',
+            $: 'control',
             events: {
                 input: e => {
                     let v = Number(e.target.value);
@@ -476,7 +487,7 @@ export default class UI {
             class: 'ui_textarea',
             rows: rows,
             value: value + '',
-            var: 'control',
+            $: 'control',
             events: {
                 input: e => {
                     let v = e.target.value;
@@ -505,7 +516,7 @@ export default class UI {
             parent: data.$container,
             context: data,
             html: value + '',
-            var: 'control',
+            $: 'control',
         });
         if (id) this.#controls.set(id, new ControlHtml(data));
         this._addSetGet(id);
@@ -545,7 +556,7 @@ export default class UI {
             parent: data.$container,
             context: data,
             class: 'ui_select',
-            var: 'control',
+            $: 'control',
             events: {
                 change: e => {
                     let v = e.target.selectedIndex;
@@ -572,7 +583,7 @@ export default class UI {
         let data = {};
         EL.make('div', {
             context: data,
-            var: 'container',
+            $: 'container',
             class: 'ui_button_cont',
             parent: this.$content,
             children: [
@@ -590,7 +601,6 @@ export default class UI {
      */
     addButtons(buttons) {
         let container = EL.make('div', {
-            var: 'container',
             class: 'ui_button_cont',
             parent: this.$content,
         });
@@ -627,7 +637,7 @@ export default class UI {
                 context: data,
                 class: 'ui_file_chooser',
                 type: 'file',
-                var: 'control',
+                $: 'control',
                 attrs: {
                     multiple: true,
                 },
@@ -640,7 +650,7 @@ export default class UI {
                 context: data,
                 class: 'ui_file_chooser_label',
                 text: '...',
-                var: 'filename',
+                $: 'filename',
                 also(el) {
                     el.addEventListener('click', () => data.$control.click());
                     el.addEventListener('drop', (e) => process(e.dataTransfer.files));
@@ -687,7 +697,7 @@ export default class UI {
             type: 'color',
             class: 'ui_color',
             value: value,
-            var: 'control',
+            $: 'control',
             attrs: { 'colorpick-eyedropper-active': false },
             events: {
                 input: e => {
@@ -719,9 +729,9 @@ export default class UI {
         return this;
     }
 
-    addSpace() {
+    addSpace(height = 5) {
         EL.make('div', {
-            class: 'ui_space',
+            style: `height: ${height}px`,
             parent: this.$content,
         });
         return this;
@@ -745,7 +755,7 @@ export default class UI {
         return EL.make('button', {
             context: context,
             class: 'ui_button',
-            var: 'control',
+            $: 'control',
             text: label + '',
             events: {
                 click: e => {
@@ -760,7 +770,7 @@ export default class UI {
         let data = {};
         EL.make('div', {
             context: data,
-            var: 'container',
+            $: 'container',
             class: 'ui_container',
             parent: this.$content,
             children: [
@@ -769,7 +779,7 @@ export default class UI {
                     children: [
                         {
                             tag: 'b',
-                            var: 'label',
+                            $: 'label',
                             text: label,
                         }
                     ]
@@ -782,7 +792,7 @@ export default class UI {
         let data = {};
         EL.make('div', {
             context: data,
-            var: 'container',
+            $: 'container',
             class: 'ui_container',
             parent: this.$content,
             children: [
@@ -792,7 +802,7 @@ export default class UI {
                         {
                             tag: 'b',
                             text: label,
-                            var: 'label',
+                            $: 'label',
                         },
                         {
                             tag: 'span',
@@ -801,7 +811,7 @@ export default class UI {
                         {
                             tag: 'span',
                             text: value + '',
-                            var: 'output',
+                            $: 'output',
                         }
                     ]
                 }
@@ -815,5 +825,5 @@ export default class UI {
     #cb = () => { };
 
     // https://www.minifier.org/
-    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--bright:#eaeaea;--font:#000;--font-mid:#555}.ui_main.theme-dark{--border:#484d53;--back:rgb(30, 35, 42);--mid:#22272E;--bright:#2D333B;--font:#ccc;--font-mid:#999}.ui_main{background-color:var(--mid);text-align:left;font:12px sans-serif;user-select:none;-webkit-user-select:none;border:none;border-radius:5px}.ui_main.noback{background:none}.ui_main.noback .ui_container{border:1px solid var(--border);margin:5px 0}.ui_main.noback .ui_title_bar{background:none;padding:0}.ui_main.noback .ui_button_cont{margin:5px 0}.ui_content{overflow-y:auto;border-radius:5px}.ui_title_bar{text-align:center;user-select:none;-webkit-user-select:none;padding:4px;font-weight:700;border:none;background:var(--bright);color:var(--font);font-size:14px;border-radius:5px 5px 0 0}.ui_container{margin:5px;padding:6px;border:none;position:relative;background:var(--bright);color:var(--font);border-radius:4px}.ui_space{height:5px}.ui_range{-webkit-appearance:none;-moz-appearance:none;width:100%;height:10px;padding:0;margin:0;margin-top:5px;background-color:#fff0;border:none;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.ui_range:focus{outline:none;border:none}.ui_range::-webkit-slider-runnable-track{width:100%;height:17px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range:focus::-webkit-slider-runnable-track{background:var(--back)}.ui_range::-webkit-slider-thumb{-webkit-appearance:none;height:15px;width:15px;background:var(--border);cursor:pointer;margin-top:0;border-radius:0}.ui_range::-moz-range-track{width:100%;height:15px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range::-moz-range-thumb{height:15px;width:15px;border:none;background:var(--border);cursor:pointer;border-radius:0}.ui_button_cont{margin:5px}.ui_button{cursor:pointer;background:var(--bright);color:var(--font-mid);height:26px;border:1px solid var(--border);font:12px sans-serif;margin-right:5px;border-radius:4px}.ui_button:active{background:var(--back)}.ui_checkbox{cursor:pointer;display:inline;width:16px;float:right}.ui_checkbox input{position:absolute;left:-99999px}.ui_checkbox span{height:16px;width:100%;display:block;text-indent:20px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALklEQVQ4T2OcOXPmfwYKACPIgLS0NLKMmDVrFsOoAaNhMJoOGBioFwZkZUWoJgApdFaxjUM1YwAAAABJRU5ErkJggg==) no-repeat}.ui_checkbox input:checked+span{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvElEQVQ4T63Tyw2EIBAA0OFKBxBL40wDRovAUACcKc1IB1zZDAkG18GYZTmSmafzgTnnMgwchoDWGlJKheGcP3JtnPceCqCUAmttSZznuYtgchsXQrgC+77DNE0kUpPbmBOoJaBOIVQylnqWgAAeKhDve/AN+EaklJBzhhgjWRoJVGTbNjiOowAIret6a+4jYIwpX8aDwLIs74C2D0IIYIyVP6Gm898m9kbVm85ljHUTf16k4VUefkwDrxk+zoUEwCt0GbUAAAAASUVORK5CYII=) no-repeat}.ui_checkbox_label{height:16px;display:inline-block;position:relative;top:2px;font-weight:700}.ui_label{margin-bottom:3px;user-select:none;-webkit-user-select:none;cursor:default}.ui_text_input{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;padding:0 0 0 5px;height:24px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_select{background:var(--back);-webkit-appearance:none;-moz-appearance:none;appearance:none;color:var(--font-mid);width:100%;height:24px;border:1px solid var(--border);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;padding:0 5px;-moz-outline:none;font-size:14px;cursor:pointer;border-radius:4px}.ui_select option{font-size:14px}.ui_select:focus{outline:none}.ui_number{height:24px}.ui_textarea{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;resize:vertical;width:100%;padding:3px 5px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}.ui_color{padding:0;margin:0;outline:none;cursor:pointer;background:none;border:none;height:30px;width:100%}.ui_file_chooser{position:absolute;left:-999999px}.ui_file_chooser_label{background:var(--back);color:var(--font);height:30px;border:1px solid var(--border);font:12px sans-serif;width:100%;display:block;cursor:pointer;padding:7px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}.ui_file_chooser_label.active{border:2px solid var(--font)}`;
+    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--bright:#eaeaea;--font:#000;--font-mid:#555}.ui_main.theme-dark{--border:#484d53;--back:rgb(30, 35, 42);--mid:#22272E;--bright:#2D333B;--font:#ccc;--font-mid:#999}.ui_main{background-color:var(--mid);text-align:left;font:13px sans-serif;user-select:none;border:none;border-radius:6px}.ui_main.noback{background:none}.ui_main.noback .ui_container{border:1px solid var(--mid);margin:5px 0}.ui_main.noback .ui_title_bar{background:none;padding:0}.ui_main.noback .ui_button_cont{margin:5px 0}.ui_content{overflow-y:auto;border-radius:6px}.ui_content.hidden{display:none}.ui_title_bar{cursor:pointer;text-align:center;padding:4px;font-weight:700;border:none;background:var(--bright);color:var(--font);font-size:15px;border-radius:5px 5px 0 0}.ui_container{margin:5px;padding:5px;border:none;position:relative;background:var(--bright);color:var(--font);border-radius:5px}.ui_range{appearance:none;width:100%;height:10px;padding:0;margin:0;margin-top:5px;background-color:#fff0;border:none;box-sizing:border-box}.ui_range::-webkit-slider-runnable-track{width:100%;height:16px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range::-moz-range-track{width:100%;height:15px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range::-webkit-slider-thumb{appearance:none;height:15px;width:15px;background:var(--border);cursor:pointer}.ui_range::-moz-range-thumb{height:15px;width:15px;border:none;background:var(--border);cursor:pointer;border-radius:0}.ui_button_cont{margin:5px}.ui_button{cursor:pointer;background:var(--bright);color:var(--font-mid);height:26px;border:1px solid var(--border);margin-right:5px;border-radius:4px}.ui_button:active{background:var(--back)}.ui_checkbox_cont{display:flex;align-items:center;justify-content:space-between}.ui_checkbox{display:inline-block}.ui_checkbox label{display:flex;align-items:center;cursor:pointer;user-select:none}.ui_checkbox input{display:none}.ui_checkbox span{width:20px;height:20px;border:1px solid var(--border);border-radius:4px;background-color:var(--back);position:relative}.ui_checkbox input:checked+span::after{content:"✓";position:absolute;left:4px;top:-1px;font-size:15px;color:var(--font);font-weight:700}.ui_label{margin-bottom:3px;user-select:none;-webkit-user-select:none;cursor:default}.ui_text_input{box-sizing:border-box;width:100%;padding:5px;height:24px;line-height:24px;border:1px solid var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_select{background:var(--back);color:var(--font-mid);width:100%;height:24px;border:1px solid var(--border);border-radius:0;padding:0 2px;cursor:pointer;border-radius:4px}.ui_textarea{box-sizing:border-box;resize:vertical;width:100%;padding:3px 5px;border:1px solid var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}.ui_color{padding:0;margin:0;outline:none;cursor:pointer;background:none;border:none;height:24px;width:100%}.ui_file_chooser{display:none}.ui_file_chooser_label{background:var(--back);color:var(--font-mid);height:24px;border:1px solid var(--border);width:100%;display:block;cursor:pointer;padding:5px;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}.ui_file_chooser_label.active{border-width:2px}`;
 }

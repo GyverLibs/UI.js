@@ -52,13 +52,13 @@ toObject();
 toJson();
 
 /**
- * Import values {id: value} or widgets [ ['addSwitch', id...] ]
- * @param {Object | Array} data
+ * Import values {id: value}
+ * @param {Object} data
  */
 fromObject(data);
 
 /**
- * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+ * Import values {id: value}
  * @param {JSON} data
  */
 fromJson(json);
@@ -85,9 +85,12 @@ set(id, value);
 
 /**
  * Remove control
- * @param {string | Array} id 
+ * @param {string | Array} id 'id' | ['id']
  */
 remove(ids);
+
+// Remove all widgets
+removeAll();
 
 // Change callback (id, value, text) - text for addSelect only
 onChange(cb);
