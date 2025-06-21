@@ -1,14 +1,13 @@
 # UI.js
 Конструктор для создания простого меню настроек
 
-> npm i @alexgyver/ui
-
 [demo](https://gyverlibs.github.io/UI.js/test/)
 
-Основано на библиотеке [quicksettings](https://github.com/bit101/quicksettings). Переписано с нуля на движке [Component](https://github.com/bit101/quicksettings), изменена логика работы, сохранён оригинальный внешний вид, переработаны стили, сделаны тёмная и светлая темы с удобным переключением.
+![test](/img/test.png)
 
-Примеры проектов с UI:
-- [Bitmaper](https://alexgyver.github.io/Bitmaper/)
+> **Browser**: https://gyverlibs.github.io/UI.js/UI.min.js
+
+> **Node**: npm i @alexgyver/ui
 
 ## Дока
 ```js
@@ -128,10 +127,6 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
     .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
     .addButton('button', 'Button');
 ```
-
-Результат
-
-![test](/img/test.png)
 
 Можно обратиться к виджету как `.control(id)` и получить доступ к
 ```js
