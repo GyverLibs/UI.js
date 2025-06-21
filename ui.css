@@ -2,13 +2,13 @@
     --border: #aaa;
     --back: #fff;
     --mid: #ccc;
-    --bright: #eee;
+    --bright: #eaeaea;
     --font: #000;
     --font-mid: #555;
 }
 
 .ui_main.theme-dark {
-    --border: #444c56;
+    --border: #484d53;
     --back: rgb(30, 35, 42);
     --mid: #22272E;
     --bright: #2D333B;
@@ -20,15 +20,28 @@
     background-color: var(--mid);
     text-align: left;
     font: 12px sans-serif;
-    box-shadow: 5px 5px 8px rgba(0, 0, 0, 0.35);
     user-select: none;
     -webkit-user-select: none;
-    border: none
+    border: none;
+    border-radius: 5px;
+}
+
+.ui_main.noback {
+    background: none;
+}
+
+.ui_main.noback .ui_container {
+    border: 1px solid var(--border);
+    margin: 5px 0;
+}
+
+.ui_main.noback .ui_button_cont {
+    margin: 5px 0;
 }
 
 .ui_content {
-    background: var(--mid);
-    overflow-y: auto
+    overflow-y: auto;
+    border-radius: 5px;
 }
 
 .ui_title_bar {
@@ -43,29 +56,31 @@
 
 .ui_container {
     margin: 5px;
-    padding: 5px;
+    padding: 6px;
     border: none;
     position: relative;
     background: var(--bright);
     color: var(--font);
+    border-radius: 4px;
 }
 
 .ui_space {
-    height: 1px;
+    height: 5px;
 }
 
 .ui_range {
     -webkit-appearance: none;
     -moz-appearance: none;
     width: 100%;
-    height: 17px;
+    height: 10px;
     padding: 0;
     margin: 0;
+    margin-top: 5px;
     background-color: transparent;
     border: none;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
-    box-sizing: border-box
+    box-sizing: border-box;
 }
 
 .ui_range:focus {
@@ -75,12 +90,11 @@
 
 .ui_range::-webkit-slider-runnable-track {
     width: 100%;
-    height: 15px;
+    height: 17px;
     cursor: pointer;
     background: var(--back);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0
+    border-radius: 4px;
+    border: 1px solid var(--border);
 }
 
 .ui_range:focus::-webkit-slider-runnable-track {
@@ -91,12 +105,10 @@
     -webkit-appearance: none;
     height: 15px;
     width: 15px;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
     background: var(--border);
     cursor: pointer;
-    margin-top: 0
+    margin-top: 0;
+    border-radius: 0;
 }
 
 .ui_range::-moz-range-track {
@@ -104,30 +116,32 @@
     height: 15px;
     cursor: pointer;
     background: var(--back);
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0
+    border-radius: 4px;
+    border: 1px solid var(--border);
 }
 
 .ui_range::-moz-range-thumb {
     height: 15px;
     width: 15px;
     border: none;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
     background: var(--border);
-    cursor: pointer
+    cursor: pointer;
+    border-radius: 0;
+}
+
+.ui_button_cont {
+    margin: 5px;
 }
 
 .ui_button {
     cursor: pointer;
-    background: var(--mid);
+    background: var(--bright);
     color: var(--font-mid);
     height: 26px;
     border: 1px solid var(--border);
     font: 12px sans-serif;
-    margin: 2px;
+    margin-right: 5px;
+    border-radius: 4px;
 }
 
 .ui_button:active {
@@ -136,12 +150,14 @@
 
 .ui_checkbox {
     cursor: pointer;
-    display: inline
+    display: inline;
+    width: 16px;
+    float: right;
 }
 
 .ui_checkbox input {
     position: absolute;
-    left: -99999px
+    left: -99999px;
 }
 
 .ui_checkbox span {
@@ -157,10 +173,11 @@
 }
 
 .ui_checkbox_label {
-    position: absolute;
-    top: 7px;
-    left: 30px;
-    pointer-events: none;
+    height: 16px;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    font-weight: bold;
 }
 
 .ui_label {
@@ -168,7 +185,6 @@
     user-select: none;
     -webkit-user-select: none;
     cursor: default;
-    font: 12px sans-serif
 }
 
 .ui_text_input {
@@ -183,6 +199,7 @@
     background: var(--back);
     color: var(--font-mid);
     outline: none;
+    border-radius: 4px;
 }
 
 .ui_select {
@@ -201,6 +218,7 @@
     -moz-outline: none;
     font-size: 14px;
     cursor: pointer;
+    border-radius: 4px;
 }
 
 .ui_select option {
@@ -227,6 +245,7 @@
     background: var(--back);
     color: var(--font-mid);
     outline: none;
+    border-radius: 4px;
 }
 
 .ui_textarea::-webkit-scrollbar {
@@ -240,7 +259,7 @@
 
 .ui_textarea::-webkit-scrollbar-thumb {
     background: var(--border);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .ui_color {
@@ -274,7 +293,8 @@
     box-sizing: border-box;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis
+    text-overflow: ellipsis;
+    border-radius: 4px;
 }
 
 .ui_file_chooser_label.active {

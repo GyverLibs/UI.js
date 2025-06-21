@@ -12,25 +12,88 @@
 
 ## Дока
 ```js
-// {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
-constructor(cfg);
+/**
+ * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
+ * @returns {UI}
+ */
+constructor(cfg = {});
+
+/**
+ * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
+ * @returns {UI}
+ */
 init(cfg);
 
-setTheme(theme);    // установить тему 'dark' | 'light'
-destroy();          // уничтожить меню
-setLabels(labels);  // установить подписи объектом {id: подпись}
+/**
+ * @returns {UI}
+ */
+setTheme(theme);
 
-control(id);        // получить контроллер
-get(id);            // получить значение
-set(id, value);     // установить значение (не приводит к срабатыванию коллбэка)
-remove(id);         // удалить контроллер
+/**
+ * Destroy UI
+ */
+destroy();
 
-toObject();         // получить объект с ключами {id: значение}
-toJson();           // вывести в JSON
+/**
+ * Set labels from object
+ * @param {object} labels {id: label} 
+ */
+setLabels(labels);
+
+/**
+ * Export values to object {id: value}
+ * @returns {Object}
+ */
+toObject();
+
+/**
+ * Export values to JSON {id: value}
+ * @returns {JSON}
+ */
+toJson();
+
+/**
+ * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+ * @param {Object | Array} data
+ */
 fromObject(data);
+
+/**
+ * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+ * @param {JSON} data
+ */
 fromJson(json);
 
-// виджеты
+/**
+ * Get control object
+ * @param {string} id 
+ * @returns {ControlInput}
+ */
+control(id);
+
+/**
+ * Get control value
+ * @param {string} id 
+ */
+get(id);
+
+/**
+ * Set control value
+ * @param {string} id 
+ * @param {*} value 
+ */
+set(id, value);
+
+/**
+ * Remove control
+ * @param {string | Array} id 
+ */
+remove(ids);
+
+// Change callback (id, value, text) - text for addSelect only
+onChange(cb);
+
+// widgets
 addSwitch(id, label, value, callback);
 addNumber(id, label, value, step, callback);
 addText(id, label, value, callback);

@@ -1,7 +1,8 @@
 import { EL } from '@alexgyver/component';
 import { addStyle } from '@alexgyver/utils';
-// import './ui.css'
+// import './UI.css'
 
+//#region ControlInput
 class ControlInput {
     _data;
 
@@ -121,7 +122,7 @@ class ControlLabel extends ControlInput {
 //#region UI
 export default class UI {
     /**
-     * @param {object} cfg {x, y, width, parent, title, zIndex, theme 'dark' | 'light'}
+     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
      * @returns {UI}
      */
     constructor(cfg = {}) {
@@ -130,7 +131,7 @@ export default class UI {
     }
 
     /**
-     * @param {object} cfg x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar
+     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
      * @returns {UI}
      */
     init(cfg) {
@@ -148,9 +149,9 @@ export default class UI {
             },
             parent: cfg.parent ?? document.body,
             children: [
-                {
+                cfg.title && {
                     class: 'ui_title_bar',
-                    text: cfg.title ?? 'UI',
+                    text: cfg.title,
                 },
                 {
                     class: 'ui_content',
@@ -194,6 +195,10 @@ export default class UI {
         }
     }
 
+    /**
+     * Export values to object {id: value}
+     * @returns {Object}
+     */
     toObject() {
         let obj = {};
         this.#controls.forEach((val, key) => {
@@ -204,23 +209,40 @@ export default class UI {
         return obj;
     }
 
+    /**
+     * Export values to JSON {id: value}
+     * @returns {JSON}
+     */
     toJson() {
         return JSON.stringify(this.toObject());
     }
 
+    /**
+     * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+     * @param {Object | Array} data
+     */
     fromObject(data) {
-        for (let id in data) {
-            if (this.#controls.has(id)) {
-                this.#controls.get(id).value = data[id];
+        if (Array.isArray(data)) {
+            for (let w of data) (this[w[0]])(...w.slice(1));
+        } else {
+            for (let id in data) {
+                if (this.#controls.has(id)) {
+                    this.#controls.get(id).value = data[id];
+                }
             }
         }
     }
 
+    /**
+     * Import values {id: value} or widgets [ ['addSwitch', id...] ]
+     * @param {JSON} data
+     */
     fromJson(json) {
         this.fromObject(JSON.parse(json));
     }
 
     /**
+     * Get control object
      * @param {string} id 
      * @returns {ControlInput}
      */
@@ -231,37 +253,45 @@ export default class UI {
     /**
      * Get control value
      * @param {string} id 
-     * @returns 
      */
     get(id) {
-        if (this.#controls.has(id)) return this.#controls.get(id).value;
+        return this.#controls.has(id) ? this.#controls.get(id).value : undefined;
     }
 
     /**
      * Set control value
      * @param {string} id 
      * @param {*} value 
-     * @returns 
      */
     set(id, value) {
-        if (this.#controls.has(id)) return this.#controls.get(id).value = value;
+        if (this.#controls.has(id)) this.#controls.get(id).value = value;
+        return value;
     }
 
     /**
      * Remove control
-     * @param {string} id 
+     * @param {string | Array} id 
      */
-    remove(id) {
-        if (this.#controls.has(id)) {
-            this.#controls.get(id).remove();
-            this.#controls.delete(id);
-            Object.defineProperty(this, id, {
-                get: undefined,
-                set: undefined,
-            });
+    remove(ids) {
+        if (!Array.isArray(ids)) ids = [ids];
+        for (let id of ids) {
+            if (this.#controls.has(id)) {
+                this.#controls.get(id).remove();
+                this.#controls.delete(id);
+                Object.defineProperty(this, id, {
+                    get: undefined,
+                    set: undefined,
+                });
+            }
         }
     }
 
+    // Change callback (id, value, text) - text for addSelect only
+    onChange(cb) {
+        this.#cb = cb;
+    }
+
+    //#region widgets
     /**
      * @param {string} id 
      * @param {string} label 
@@ -270,6 +300,7 @@ export default class UI {
      * @returns {UI}
      */
     addSwitch(id, label, value, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? false;
         let data = { default: value };
 
@@ -294,8 +325,12 @@ export default class UI {
                             type: 'checkbox',
                             checked: value,
                             var: 'control',
-                            also(el) {
-                                if (callback) el.addEventListener('click', () => callback(el.checked));
+                            events: {
+                                click: (e) => {
+                                    let v = e.target.checked;
+                                    this.#cb(id, v);
+                                    if (callback) callback(v);
+                                }
                             }
                         },
                         {
@@ -319,6 +354,7 @@ export default class UI {
      * @returns {UI}
      */
     addNumber(id, label, value, step, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? 0;
         let data = this._makeContainer(label);
         data.default = value;
@@ -330,12 +366,14 @@ export default class UI {
             step: (step ?? 1) + '',
             value: value + '',
             var: 'control',
-            also(el) {
-                el.addEventListener('input', () => {
-                    if (callback) callback(Number(el.value));
-                });
-                el.addEventListener('mousewheel', (e) => { });
-            }
+            events: {
+                input: e => {
+                    let v = Number(e.target.value);
+                    this.#cb(id, v);
+                    if (callback) callback(v);
+                },
+                mousewheel: () => { }
+            },
         });
         if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
@@ -350,6 +388,7 @@ export default class UI {
      * @returns {UI}
      */
     addText(id, label, value, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
@@ -360,8 +399,12 @@ export default class UI {
             class: 'ui_text_input',
             value: value + '',
             var: 'control',
-            also(el) {
-                if (callback) el.addEventListener('input', () => callback(el.value));
+            events: {
+                input: e => {
+                    let v = e.target.value;
+                    this.#cb(id, v);
+                    if (callback) callback(v);
+                }
             }
         });
         if (id) this.#controls.set(id, new ControlInput(data));
@@ -380,6 +423,7 @@ export default class UI {
      * @returns {UI}
      */
     addRange(id, label, value, min, max, step, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? 0;
         let data = this._makeContainerOut(label, value);
         data.default = value;
@@ -393,18 +437,21 @@ export default class UI {
             max: (max ?? 100) + '',
             step: (step ?? 1) + '',
             var: 'control',
-            also(el) {
-                el.addEventListener('input', () => {
-                    if (callback) callback(Number(el.value));
-                    data.$output.innerText = el.value;
-                });
-                el.addEventListener('mousewheel', (e) => {
+            events: {
+                input: e => {
+                    let v = Number(e.target.value);
+                    this.#cb(id, v);
+                    if (callback) callback(v);
+                    data.$output.innerText = v;
+                },
+                mousewheel: e => {
                     e.stopPropagation();
                     e.preventDefault();
+                    let el = e.target;
                     el.value = Number(el.value) + Number(el.step) * (e.deltaY > 0 ? -1 : 1);
                     el.dispatchEvent(new Event('input'));
-                });
-            }
+                }
+            },
         });
         if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
@@ -419,6 +466,7 @@ export default class UI {
      * @returns {UI}
      */
     addArea(id, label, value, callback, rows = 5) {
+        if (this.#controls.has(id)) return this;
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
@@ -429,9 +477,13 @@ export default class UI {
             rows: rows,
             value: value + '',
             var: 'control',
-            also(el) {
-                if (callback) el.addEventListener('input', () => callback(el.value));
-            }
+            events: {
+                input: e => {
+                    let v = e.target.value;
+                    this.#cb(id, v);
+                    if (callback) callback(v);
+                }
+            },
         });
         if (id) this.#controls.set(id, new ControlInput(data));
         this._addSetGet(id);
@@ -445,6 +497,7 @@ export default class UI {
      * @returns {UI}
      */
     addHTML(id, label, value) {
+        if (this.#controls.has(id)) return this;
         value = value ?? '';
         let data = this._makeContainer(label);
         data.default = value;
@@ -466,6 +519,7 @@ export default class UI {
      * @returns {UI}
      */
     addElement(id, label, value) {
+        if (this.#controls.has(id)) return this;
         let data = this._makeContainer(label);
         data.default = value;
         data.$control = value;
@@ -483,6 +537,7 @@ export default class UI {
      * @returns {UI}
      */
     addSelect(id, label, value, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? [];
         let data = this._makeContainer(label);
         data.default = 0;
@@ -491,8 +546,13 @@ export default class UI {
             context: data,
             class: 'ui_select',
             var: 'control',
-            also(el) {
-                if (callback) el.addEventListener('change', () => callback(Number(el.value)));
+            events: {
+                change: e => {
+                    let v = e.target.selectedIndex;
+                    let t = e.target.options[v].text;
+                    this.#cb(id, v, t);
+                    if (callback) callback(v, t);
+                }
             },
             children: value.map((x, i) => EL.make('option', { text: x, value: i + '' })),
         });
@@ -508,11 +568,12 @@ export default class UI {
      * @returns {UI}
      */
     addButton(id, label, callback) {
+        if (this.#controls.has(id)) return this;
         let data = {};
         EL.make('div', {
             context: data,
             var: 'container',
-            class: 'ui_container',
+            class: 'ui_button_cont',
             parent: this.$content,
             children: [
                 this._makeButton(data, id, label, callback)
@@ -530,13 +591,14 @@ export default class UI {
     addButtons(buttons) {
         let container = EL.make('div', {
             var: 'container',
-            class: 'ui_container',
+            class: 'ui_button_cont',
             parent: this.$content,
         });
 
         for (let id in buttons) {
             let data = { $container: container };
-            container.append(this._makeButton(data, id, buttons[id][0], buttons[id][1]));
+            let b = buttons[id];
+            container.append(Array.isArray(b) ? this._makeButton(data, id, b[0], b[1]) : this._makeButton(data, id, b));
             data.$label = data.$control;
             if (id) this.#controls.set(id, new ControlButton(data));
         }
@@ -550,9 +612,12 @@ export default class UI {
      * @returns {UI}
      */
     addFile(id, label, callback) {
+        if (this.#controls.has(id)) return this;
         let data = this._makeContainer(label);
         let process = (files) => {
-            if (callback) callback(files.length == 1 ? files[0] : files);
+            let v = files.length == 1 ? files[0] : files;
+            this.#cb(id, v);
+            if (callback) callback(v);
             data.$filename.innerText = files[0].name;
         }
 
@@ -613,6 +678,7 @@ export default class UI {
      * @returns {UI}
      */
     addColor(id, label, value, callback) {
+        if (this.#controls.has(id)) return this;
         value = value ?? '#000';
         let data = this._makeContainerOut(label, value);
         data.default = value;
@@ -623,12 +689,14 @@ export default class UI {
             value: value,
             var: 'control',
             attrs: { 'colorpick-eyedropper-active': false },
-            also(el) {
-                el.addEventListener('input', () => {
-                    if (callback) callback(el.value);
-                    data.$output.innerText = el.value;
-                });
-            }
+            events: {
+                input: e => {
+                    let v = e.target.value;
+                    this.#cb(id, v);
+                    if (callback) callback(v);
+                    data.$output.innerText = v;
+                }
+            },
         }));
         if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
@@ -642,6 +710,7 @@ export default class UI {
      * @returns {UI}
      */
     addLabel(id, label, value) {
+        if (this.#controls.has(id)) return this;
         value = value ?? '';
         let data = this._makeContainerOut(label, value);
         data.$control = data.$output;
@@ -658,6 +727,7 @@ export default class UI {
         return this;
     }
 
+    //#region system
     _addSetGet(id) {
         if (!this.autoVar || !id) return;
         Object.defineProperty(this, id, {
@@ -677,8 +747,11 @@ export default class UI {
             class: 'ui_button',
             var: 'control',
             text: label + '',
-            also(el) {
-                if (callback) el.addEventListener('click', () => callback(1));
+            events: {
+                click: e => {
+                    this.#cb(id);
+                    if (callback) callback();
+                }
             }
         });
     }
@@ -739,7 +812,8 @@ export default class UI {
 
     #controls = new Map();
     #count = 0;
+    #cb = () => { };
 
     // https://www.minifier.org/
-    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--bright:#eee;--font:#000;--font-mid:#555}.ui_main.theme-dark{--border:#444c56;--back:rgb(30, 35, 42);--mid:#22272E;--bright:#2D333B;--font:#ccc;--font-mid:#999}.ui_main{background-color:var(--mid);text-align:left;font:12px sans-serif;box-shadow:5px 5px 8px rgb(0 0 0 / .35);user-select:none;-webkit-user-select:none;border:none}.ui_content{background:var(--mid);overflow-y:auto}.ui_title_bar{user-select:none;-webkit-user-select:none;padding:5px;font-weight:700;border:none;background:var(--bright);color:var(--font)}.ui_container{margin:5px;padding:5px;border:none;position:relative;background:var(--bright);color:var(--font)}.ui_space{height:1px}.ui_range{-webkit-appearance:none;-moz-appearance:none;width:100%;height:17px;padding:0;margin:0;background-color:#fff0;border:none;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.ui_range:focus{outline:none;border:none}.ui_range::-webkit-slider-runnable-track{width:100%;height:15px;cursor:pointer;background:var(--back);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}.ui_range:focus::-webkit-slider-runnable-track{background:var(--back)}.ui_range::-webkit-slider-thumb{-webkit-appearance:none;height:15px;width:15px;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;background:var(--border);cursor:pointer;margin-top:0}.ui_range::-moz-range-track{width:100%;height:15px;cursor:pointer;background:var(--back);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}.ui_range::-moz-range-thumb{height:15px;width:15px;border:none;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;background:var(--border);cursor:pointer}.ui_button{cursor:pointer;background:var(--mid);color:var(--font-mid);height:26px;border:1px solid var(--border);font:12px sans-serif;margin:2px}.ui_button:active{background:var(--back)}.ui_checkbox{cursor:pointer;display:inline}.ui_checkbox input{position:absolute;left:-99999px}.ui_checkbox span{height:16px;width:100%;display:block;text-indent:20px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALklEQVQ4T2OcOXPmfwYKACPIgLS0NLKMmDVrFsOoAaNhMJoOGBioFwZkZUWoJgApdFaxjUM1YwAAAABJRU5ErkJggg==) no-repeat}.ui_checkbox input:checked+span{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvElEQVQ4T63Tyw2EIBAA0OFKBxBL40wDRovAUACcKc1IB1zZDAkG18GYZTmSmafzgTnnMgwchoDWGlJKheGcP3JtnPceCqCUAmttSZznuYtgchsXQrgC+77DNE0kUpPbmBOoJaBOIVQylnqWgAAeKhDve/AN+EaklJBzhhgjWRoJVGTbNjiOowAIret6a+4jYIwpX8aDwLIs74C2D0IIYIyVP6Gm898m9kbVm85ljHUTf16k4VUefkwDrxk+zoUEwCt0GbUAAAAASUVORK5CYII=) no-repeat}.ui_checkbox_label{position:absolute;top:7px;left:30px;pointer-events:none}.ui_label{margin-bottom:3px;user-select:none;-webkit-user-select:none;cursor:default;font:12px sans-serif}.ui_text_input{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;padding:0 0 0 5px;height:24px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none}.ui_select{background:var(--back);-webkit-appearance:none;-moz-appearance:none;appearance:none;color:var(--font-mid);width:100%;height:24px;border:1px solid var(--border);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;padding:0 5px;-moz-outline:none;font-size:14px;cursor:pointer}.ui_select option{font-size:14px}.ui_select:focus{outline:none}.ui_number{height:24px}.ui_textarea{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;resize:vertical;width:100%;padding:3px 5px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}.ui_color{padding:0;margin:0;outline:none;cursor:pointer;background:none;border:none;height:30px;width:100%}.ui_file_chooser{position:absolute;left:-999999px}.ui_file_chooser_label{background:var(--back);color:var(--font);height:30px;border:1px solid var(--border);font:12px sans-serif;width:100%;display:block;cursor:pointer;padding:7px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui_file_chooser_label.active{border:2px solid var(--font)}`;
+    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--bright:#eaeaea;--font:#000;--font-mid:#555}.ui_main.theme-dark{--border:#484d53;--back:rgb(30, 35, 42);--mid:#22272E;--bright:#2D333B;--font:#ccc;--font-mid:#999}.ui_main{background-color:var(--mid);text-align:left;font:12px sans-serif;user-select:none;-webkit-user-select:none;border:none;border-radius:5px}.ui_main.noback{background:none}.ui_main.noback .ui_container{border:1px solid var(--border);margin:5px 0}.ui_main.noback .ui_button_cont{margin:5px 0}.ui_content{overflow-y:auto;border-radius:5px}.ui_title_bar{user-select:none;-webkit-user-select:none;padding:5px;font-weight:700;border:none;background:var(--bright);color:var(--font)}.ui_container{margin:5px;padding:6px;border:none;position:relative;background:var(--bright);color:var(--font);border-radius:4px}.ui_space{height:5px}.ui_range{-webkit-appearance:none;-moz-appearance:none;width:100%;height:10px;padding:0;margin:0;margin-top:5px;background-color:#fff0;border:none;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.ui_range:focus{outline:none;border:none}.ui_range::-webkit-slider-runnable-track{width:100%;height:17px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range:focus::-webkit-slider-runnable-track{background:var(--back)}.ui_range::-webkit-slider-thumb{-webkit-appearance:none;height:15px;width:15px;background:var(--border);cursor:pointer;margin-top:0;border-radius:0}.ui_range::-moz-range-track{width:100%;height:15px;cursor:pointer;background:var(--back);border-radius:4px;border:1px solid var(--border)}.ui_range::-moz-range-thumb{height:15px;width:15px;border:none;background:var(--border);cursor:pointer;border-radius:0}.ui_button_cont{margin:5px}.ui_button{cursor:pointer;background:var(--bright);color:var(--font-mid);height:26px;border:1px solid var(--border);font:12px sans-serif;margin-right:5px;border-radius:4px}.ui_button:active{background:var(--back)}.ui_checkbox{cursor:pointer;display:inline;width:16px;float:right}.ui_checkbox input{position:absolute;left:-99999px}.ui_checkbox span{height:16px;width:100%;display:block;text-indent:20px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALklEQVQ4T2OcOXPmfwYKACPIgLS0NLKMmDVrFsOoAaNhMJoOGBioFwZkZUWoJgApdFaxjUM1YwAAAABJRU5ErkJggg==) no-repeat}.ui_checkbox input:checked+span{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvElEQVQ4T63Tyw2EIBAA0OFKBxBL40wDRovAUACcKc1IB1zZDAkG18GYZTmSmafzgTnnMgwchoDWGlJKheGcP3JtnPceCqCUAmttSZznuYtgchsXQrgC+77DNE0kUpPbmBOoJaBOIVQylnqWgAAeKhDve/AN+EaklJBzhhgjWRoJVGTbNjiOowAIret6a+4jYIwpX8aDwLIs74C2D0IIYIyVP6Gm898m9kbVm85ljHUTf16k4VUefkwDrxk+zoUEwCt0GbUAAAAASUVORK5CYII=) no-repeat}.ui_checkbox_label{height:16px;display:inline-block;position:relative;top:2px;font-weight:700}.ui_label{margin-bottom:3px;user-select:none;-webkit-user-select:none;cursor:default}.ui_text_input{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;padding:0 0 0 5px;height:24px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_select{background:var(--back);-webkit-appearance:none;-moz-appearance:none;appearance:none;color:var(--font-mid);width:100%;height:24px;border:1px solid var(--border);-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;padding:0 5px;-moz-outline:none;font-size:14px;cursor:pointer;border-radius:4px}.ui_select option{font-size:14px}.ui_select:focus{outline:none}.ui_number{height:24px}.ui_textarea{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;resize:vertical;width:100%;padding:3px 5px;font-size:12px;border:1px inset var(--border);background:var(--back);color:var(--font-mid);outline:none;border-radius:4px}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}.ui_color{padding:0;margin:0;outline:none;cursor:pointer;background:none;border:none;height:30px;width:100%}.ui_file_chooser{position:absolute;left:-999999px}.ui_file_chooser_label{background:var(--back);color:var(--font);height:30px;border:1px solid var(--border);font:12px sans-serif;width:100%;display:block;cursor:pointer;padding:7px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}.ui_file_chooser_label.active{border:2px solid var(--font)}`;
 }

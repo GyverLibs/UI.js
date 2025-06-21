@@ -3,14 +3,16 @@ import UI from "https://gyverlibs.github.io/UI.js/UI.min.js";
 document.addEventListener("DOMContentLoaded", () => {    
     let ui = new UI({ title: "Test UI", theme: 'dark' })
         .addFile('file', 'File')
-        .addText('link', 'Link', '')
-        .addNumber('width', 'Ширина', 128, 1)
-        .addButton('fit', 'Fit')
-        .addRange('rotate', 'Angle', 0, -180, 180, 5)
-        .addSelect('mode', 'Режимы', ['Mono', 'Grayscale', 'RGB'])
-        .addHTML('result', 'Plain HTML', '<h2>Hello</h2>')
-        .addArea('code', 'Code area', '')
-        .addButton('info', 'Info');
+        .addText('text', 'Text', '')
+        .addNumber('number', 'Number', 128, 1)
+        .addRange('range', 'Range', 0, -180, 180, 5)
+        .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
+        .addHTML('html', 'HTML', '<h2>Hello</h2>')
+        .addSwitch('switch', 'Switch', 0)
+        .addColor('color', 'Color')
+        .addArea('area', 'Area', 'abc')
+        .addButton('button', 'Button')
+        .addButtons({ 'btn1': ['label 1', null], 'btn2': 'label 2' });
     
     ui.set("code", "some new code");
     
