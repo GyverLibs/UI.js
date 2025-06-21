@@ -116,22 +116,17 @@ function file_h(file) {
 // остальные обработчики не указаны, это пример
 
 let ui = new UI({ title: "Test UI", theme: 'dark' })
-    .addFile('file', 'File', file_h)
-    .addText('link', 'Link', '', link_h)
-    .addNumber('width', 'Ширина', 128, 1, resize_h)
-    .addButton('fit', 'Fit', fit_h)
-    .addRange('rotate', 'Angle', 0, -180, 180, 5, rotate_h)
-    .addSelect('mode', 'Режимы', ['Mono', 'Grayscale', 'RGB'], mode_h)
-    .addHTML('result', 'Plain HTML', '<h2>Hello</h2>')
-    .addArea('code', 'Code area', '')
-    .addButtons({ copy: ["Copy", copy_h], header: [".h", saveH_h], bin: [".bin", saveBin_h] })
-    .addButton('info', '', info_h);
-
-ui.set("code", "some new code");
-
-// библиотека создаёт сеттер и геттер по id
-ui.link = 'abc';
-console.log(ui.link);
+    .addFile('file', 'File')
+    .addText('text', 'Text', '')
+    .addNumber('number', 'Number', 128, 1)
+    .addRange('range', 'Range', 0, -180, 180, 5)
+    .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
+    .addHTML('html', 'HTML', '<h2>Hello</h2>')
+    .addSwitch('switch', 'Switch', 0)
+    .addColor('color', 'Color')
+    .addArea('area', 'Area', 'abc')
+    .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
+    .addButton('button', 'Button');
 ```
 
 Результат
@@ -146,8 +141,8 @@ get value();    // значение
 set value(v);   // значение
 get input();    // HTMLElement виджета
 display(state); // скрыть/отобразить
-show();     // отобразить
-hide();     // скрыть
-remove();   // удалить
-default();  // установить значение по умолчанию
+show();         // отобразить
+hide();         // скрыть
+remove();       // удалить
+default();      // установить значение по умолчанию
 ```
