@@ -122,7 +122,7 @@ class ControlLabel extends ControlInput {
 //#region UI
 export default class UI {
     /**
-     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
+     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light' | 'dark noback' | 'light noback'}, autoVar}
      * @returns {UI}
      */
     constructor(cfg = {}) {
@@ -131,7 +131,7 @@ export default class UI {
     }
 
     /**
-     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light'}, autoVar}
+     * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light' | 'dark noback' | 'light noback'}, autoVar}
      * @returns {UI}
      */
     init(cfg) {
