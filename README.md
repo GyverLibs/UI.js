@@ -99,7 +99,7 @@ onChange(cb);
 addSwitch(id, label, value, callback);
 addNumber(id, label, value, step, callback);
 addText(id, label, value, callback);
-addRange(id, label, value, min, max, step, callback);
+addSlider(id, label, value, min, max, step, callback);
 addArea(id, label, value, callback);
 addHTML(id, label, value);
 addElement(id, label, value);
@@ -108,7 +108,7 @@ addButton(id, label, callback);
 addButtons(buttons);
 addFile(id, label, callback);
 addColor(id, label, value, callback);
-addSpace();
+addSpace(height);
 ```
 
 ## Пример
@@ -121,7 +121,7 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
     .addFile('file', 'File')
     .addText('text', 'Text', '')
     .addNumber('number', 'Number', 128, 1)
-    .addRange('range', 'Range', 0, -180, 180, 5)
+    .addSlider('slider', 'Slider', 0, -180, 180, 5)
     .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
     .addHTML('html', 'HTML', '<h2>Hello</h2>')
     .addSwitch('switch', 'Switch', 0)

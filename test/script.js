@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .addFile('file', 'File')
         .addText('text', 'Text', '')
         .addNumber('number', 'Number', 128, 1)
-        .addRange('range', 'Range', 0, -180, 180, 5)
+        .addSlider('range', 'Range', 0, -180, 180, 5)
         .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
         .addHTML('html', 'HTML', '<h2>Hello</h2>')
         .addSwitch('switch', 'Switch', 0)
