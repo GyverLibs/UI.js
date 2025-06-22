@@ -2,7 +2,7 @@
     --border: #aaa;
     --back: #fff;
     --mid: #ccc;
-    --tab: #eaeaea;
+    --tab: #f0f0f0;
     --font: #000;
     --font-mid: #555;
     --thumb: var(--back);
@@ -33,7 +33,7 @@
 
 .ui_main.noback .ui_container {
     border: 1px solid var(--mid);
-    margin: 5px 0;
+    margin: 4px 0;
 }
 
 .ui_main.noback .ui_title_bar {
@@ -63,7 +63,7 @@
 
 .ui_container {
     margin: 5px;
-    padding: 5px;
+    padding: 6px;
     border: none;
     position: relative;
     background: var(--tab);
@@ -74,7 +74,7 @@
 .ui_range_cont {
     display: flex;
     align-items: center;
-    padding: 7px 0;
+    padding: 8px 0 6px 0;
 }
 
 .ui_range {
