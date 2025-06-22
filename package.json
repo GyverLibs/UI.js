@@ -1,6 +1,6 @@
 {
   "name": "@alexgyver/ui",
-  "version": "1.4.4",
+  "version": "1.4.6",
   "description": "Simple UI builder",
   "main": "./UI.js",
   "module": "./UI.js",

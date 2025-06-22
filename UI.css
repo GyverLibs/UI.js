@@ -48,12 +48,7 @@
     border-radius: 6px;
 }
 
-.ui_content.hidden {
-    display: none;
-}
-
 .ui_title_bar {
-    cursor: pointer;
     text-align: center;
     padding: 4px;
     font-weight: bold;
@@ -92,7 +87,7 @@
     cursor: pointer;
     background: var(--back);
     border-radius: 3px;
-    border: 1px solid  var(--border);
+    border: 1px solid var(--border);
 }
 
 .ui_range::-moz-range-track {
