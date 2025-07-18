@@ -748,7 +748,7 @@ export default class UI {
 
     //#region system
     _addSetGet(id) {
-        if (!this.autoVar || !id) return;
+        if (!this.autoVar || !id || typeof this[id] == 'function') return;
         Object.defineProperty(this, id, {
             get: () => { return this.get(id) },
             set: (val) => this.set(id, val),

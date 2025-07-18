@@ -1,6 +1,6 @@
 {
   "name": "@alexgyver/ui",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Simple UI builder",
   "main": "./UI.js",
   "module": "./UI.js",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2",    
+    "webpack-dev-server": "^5.2.2",
     "mini-css-extract-plugin": "^2.9.2",
     "style-loader": "^4.0.0",
     "css-loader": "^7.1.2",
