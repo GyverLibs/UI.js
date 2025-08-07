@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .addText('text', 'Text', '')
         .addNumber('number', 'Number', 128, 1)
         .addSlider('range', 'Range', 0, -180, 180, 5)
-        .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
+        .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'], changef)
         .addHTML('html', 'HTML', '<h2>Hello</h2>')
         .addSwitch('switch', 'Switch', 0)
         .addArea('area', 'Area', 'abc')
@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ui.onChange((id, val, t) => console.log(id, val, t));
     // ui.removeAll();
+
+    function changef(val, t) {
+        console.log(val, t);
+        console.log(ui.getWidget('select').text);
+        console.log(ui.getWidget('select').options);
+        // ui.control('select').options = ['test', '123'];
+    }
 
     // new UI({x:'220px', title: 'Test UI', theme: 'dark noback' })
     //     .addFile('file', 'File')

@@ -64,11 +64,11 @@ fromObject(data);
 fromJson(json);
 
 /**
- * Get control object
+ * Get widget object
  * @param {string} id 
  * @returns {ControlInput}
  */
-control(id);
+getWidget(id);
 
 /**
  * Get control value
@@ -131,7 +131,7 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
     .addButton('button', 'Button');
 ```
 
-Можно обратиться к виджету как `.control(id)` и получить доступ к
+Можно обратиться к виджету как `.getWidget(id)` и получить доступ к
 ```js
 get label();    // подпись
 set label(v);   // подпись
@@ -143,4 +143,9 @@ show();         // отобразить
 hide();         // скрыть
 remove();       // удалить
 default();      // установить значение по умолчанию
+
+// для Select
+set options(options);   // установить список массивом строк
+get options();          // получить список массивом строк
+get text();             // получить значение как строку
 ```

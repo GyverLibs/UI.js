@@ -106,6 +106,12 @@ class ControlSelect extends ControlNumber {
     set options(options) {
         return this._data.$control.replaceChildren(...options.map((x, i) => EL.make('option', { text: x, value: i + '' })));
     }
+    get options() {
+        return Array.from(this._data.$control.options).map(option => option.text);
+    }
+    get text() {
+        return this.options[this.value];
+    }
 }
 class ControlLabel extends ControlInput {
     constructor(data) {
@@ -242,6 +248,9 @@ export default class UI {
      * @param {string} id 
      * @returns {ControlInput}
      */
+    getWidget(id) {
+        return this.#controls.get(id);
+    }
     control(id) {
         return this.#controls.get(id);
     }
