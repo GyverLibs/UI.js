@@ -456,10 +456,10 @@ export default class UI {
                 tag: 'input',
                 type: 'range',
                 class: 'ui_range',
-                value: value + '',
                 min: (min ?? 0) + '',
                 max: (max ?? 100) + '',
                 step: (step ?? 1) + '',
+                value: value + '',
                 $: 'control',
                 events: {
                     input: e => {
