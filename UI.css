@@ -21,7 +21,7 @@
 .ui_main {
     background-color: var(--mid);
     text-align: left;
-    font: 13px sans-serif;
+    font: 12px sans-serif;
     user-select: none;
     border: none;
     border-radius: 6px;
@@ -37,12 +37,15 @@
 }
 
 .ui_main.noback .ui_title_bar {
-    background: none;
-    padding: 0;
+    display: none;
 }
 
 .ui_main.noback .ui_button_cont {
-    margin: 5px 0;
+    margin: 4px 0;
+}
+
+.ui_main.noback .ui_button {
+    border: 1px solid var(--mid);
 }
 
 .ui_content {
@@ -52,7 +55,6 @@
 
 .ui_title_bar {
     text-align: center;
-    padding: 4px;
     font-weight: bold;
     border: none;
     background: var(--tab);
@@ -61,9 +63,13 @@
     border-radius: 5px 5px 0 0;
 }
 
+.ui_title_bar:not(:empty) {
+    padding: 4px;
+}
+
 .ui_container {
-    margin: 5px;
-    padding: 6px;
+    margin: 4px;
+    padding: 5px;
     border: none;
     position: relative;
     background: var(--tab);
@@ -107,8 +113,8 @@
 }
 
 .ui_button_cont {
-    margin: 5px;
-    gap: 5px;
+    margin: 4px;
+    gap: 4px;
     display: flex;
 }
 
@@ -117,9 +123,9 @@
     background: var(--tab);
     color: var(--font-mid);
     height: 26px;
-    border: 1px solid var(--mid);
     border-radius: 4px;
     width: 100%;
+    border: none;
 }
 
 .ui_button:hover {
@@ -183,7 +189,7 @@
     cursor: default;
 }
 
-.ui_text_input {
+.ui_input {
     box-sizing: border-box;
     width: 100%;
     padding: 5px;
@@ -192,7 +198,6 @@
     border: 1px solid var(--border);
     background: var(--back);
     color: var(--font-mid);
-    outline: none;
     border-radius: 4px;
 }
 
@@ -216,7 +221,6 @@
     border: 1px solid var(--border);
     background: var(--back);
     color: var(--font-mid);
-    outline: none;
     border-radius: 4px;
 }
 
@@ -248,7 +252,6 @@
     cursor: pointer;
     padding: 0;
     margin: 0;
-    outline: none;
     border: none;
     background: none;
     height: 22px;
