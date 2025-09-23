@@ -33,7 +33,7 @@
 
 .ui_main.noback .ui_container {
     border: 1px solid var(--mid);
-    margin: 4px 0;
+    margin: 5px 0;
 }
 
 .ui_main.noback .ui_title_bar {
@@ -68,7 +68,7 @@
 }
 
 .ui_container {
-    margin: 4px;
+    margin: 5px;
     padding: 5px;
     border: none;
     position: relative;
