@@ -586,6 +586,16 @@ export default class UI {
                 this.#cb(id, v, t);
                 if (callback) callback(v, t);
             },
+            mousewheel: e => {
+                e.stopPropagation();
+                e.preventDefault();
+                let el = e.target;
+                if (e.deltaY < 0 && el.selectedIndex > 0) el.selectedIndex--;
+                else if (e.deltaY > 0 && el.selectedIndex < el.options.length - 1) el.selectedIndex++;
+                else return;
+
+                el.dispatchEvent(new Event('change'));
+            },
             children: value.map((x, i) => EL.make('option', { text: x, value: i + '' })),
         });
         if (id) this.#controls.set(id, new ControlSelect(data));
