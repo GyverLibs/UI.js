@@ -41,7 +41,7 @@
 }
 
 .ui_main.noback .ui_button_cont {
-    margin: 4px 0;
+    margin: 5px 0;
 }
 
 .ui_main.noback .ui_button {
@@ -113,8 +113,8 @@
 }
 
 .ui_button_cont {
-    margin: 4px;
-    gap: 4px;
+    margin: 5px;
+    gap: 5px;
     display: flex;
 }
 
