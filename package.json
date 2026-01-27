@@ -1,6 +1,6 @@
 {
   "name": "@alexgyver/ui",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Simple UI builder",
   "main": "./UI.js",
   "module": "./UI.js",
@@ -16,16 +16,16 @@
     "dev": "webpack serve --config ./webpack.dev.config.js & webpack --config ./webpack.dev.config.js"
   },
   "devDependencies": {
-    "webpack": "^5.101.3",
+    "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2",
-    "mini-css-extract-plugin": "^2.9.4",
+    "webpack-dev-server": "^5.2.3",
+    "mini-css-extract-plugin": "^2.10.0",
     "style-loader": "^4.0.0",
     "css-loader": "^7.1.2",
-    "html-webpack-plugin": "^5.6.4"
+    "html-webpack-plugin": "^5.6.6"
   },
   "dependencies": {
     "@alexgyver/component": "^1.4.0",
-    "@alexgyver/utils": "^1.2.0"
+    "@alexgyver/utils": "^1.2.4"
   }
 }

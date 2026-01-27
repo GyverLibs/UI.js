@@ -394,10 +394,9 @@ export default class UI {
     addNumber(id, label, value, step, callback) {
         if (this.#controls.has(id)) return this;
         value = value ?? 0;
-        let data = this._makeContainer(label);
-        data.default = value;
-        EL.makeIn(data, 'input', {
-            parent: data.$container,
+        let data = { default: value };
+        this._makeContainer(data, label, [{
+            tag: 'input',
             type: 'number',
             class: 'ui_input',
             step: (step ?? 1) + '',
@@ -409,7 +408,8 @@ export default class UI {
                 if (callback) callback(v);
             },
             mousewheel: () => { }
-        });
+        }]);
+
         if (id) this.#controls.set(id, new ControlNumber(data));
         this._addSetGet(id);
         return this;
@@ -428,10 +428,9 @@ export default class UI {
     addText(id, label, value, callback) {
         if (this.#controls.has(id)) return this;
         value = value ?? '';
-        let data = this._makeContainer(label);
-        data.default = value;
-        EL.makeIn(data, 'input', {
-            parent: data.$container,
+        let data = { default: value };
+        this._makeContainer(data, label, [{
+            tag: 'input',
             type: 'text',
             class: 'ui_input',
             value: value + '',
@@ -441,7 +440,7 @@ export default class UI {
                 this.#cb(id, v);
                 if (callback) callback(v);
             }
-        });
+        }]);
         if (id) this.#controls.set(id, new ControlInput(data));
         this._addSetGet(id);
         return this;
@@ -507,10 +506,9 @@ export default class UI {
     addArea(id, label, value, callback, rows = 5) {
         if (this.#controls.has(id)) return this;
         value = value ?? '';
-        let data = this._makeContainer(label);
-        data.default = value;
-        EL.makeIn(data, 'textarea', {
-            parent: data.$container,
+        let data = { default: value };
+        this._makeContainer(data, label, [{
+            tag: 'textarea',
             class: 'ui_textarea',
             rows: rows,
             value: value + '',
@@ -520,7 +518,7 @@ export default class UI {
                 this.#cb(id, v);
                 if (callback) callback(v);
             }
-        });
+        }]);
         if (id) this.#controls.set(id, new ControlInput(data));
         this._addSetGet(id);
         return this;
@@ -535,13 +533,11 @@ export default class UI {
     addHTML(id, label, value) {
         if (this.#controls.has(id)) return this;
         value = value ?? '';
-        let data = this._makeContainer(label);
-        data.default = value;
-        EL.makeIn(data, 'div', {
-            parent: data.$container,
+        let data = { default: value };
+        this._makeContainer(data, label, [{
             html: value + '',
             $: 'control',
-        });
+        }]);
         if (id) this.#controls.set(id, new ControlHtml(data));
         this._addSetGet(id);
         return this;
@@ -555,10 +551,9 @@ export default class UI {
      */
     addElement(id, label, value) {
         if (this.#controls.has(id)) return this;
-        let data = this._makeContainer(label);
-        data.default = value;
+        let data = { default: value };
+        this._makeContainer(data, label, [value]);
         data.$control = value;
-        data.$container.append(value);
         if (id) this.#controls.set(id, new ControlHtml(data));
         this._addSetGet(id);
         return this;
@@ -574,10 +569,9 @@ export default class UI {
     addSelect(id, label, value, callback) {
         if (this.#controls.has(id)) return this;
         value = value ?? [];
-        let data = this._makeContainer(label);
-        data.default = 0;
-        EL.makeIn(data, 'select', {
-            parent: data.$container,
+        let data = { default: 0 };
+        this._makeContainer(data, label, [{
+            tag: 'select',
             class: 'ui_select',
             $: 'control',
             change: e => {
@@ -597,7 +591,8 @@ export default class UI {
                 el.dispatchEvent(new Event('change'));
             },
             children: value.map((x, i) => EL.make('option', { text: x, value: i + '' })),
-        });
+        }]);
+
         if (id) this.#controls.set(id, new ControlSelect(data));
         if (this._addSetGet(id))
             Object.defineProperty(this, id + 'Text', {
@@ -656,9 +651,7 @@ export default class UI {
      * @returns {UI}
      */
     addFile(id, label, callback) {
-        if (this.#controls.has(id)) return this;
-        let data = this._makeContainer(label);
-        let process = (files) => {
+        let process = (data, files, callback) => {
             let label = '';
             for (let i = 0; i < files.length; i++) label += (i ? ', ' : '') + files[i].name;
             data.$filename.innerText = label.length ? label : '...';
@@ -669,26 +662,33 @@ export default class UI {
             if (callback) callback(v);
         }
 
-        EL.makeIn(data, 'input', {
-            parent: data.$container,
-            class: 'ui_file_chooser',
-            type: 'file',
-            $: 'control',
-            change: () => process(data.$control.files),
-            attrs: {
-                multiple: true,
+        if (this.#controls.has(id)) return this;
+        let data = {};
+        this._makeContainer(data, label, [
+            {
+                tag: 'input',
+                class: 'ui_file_chooser',
+                type: 'file',
+                $: 'control',
+                change: () => process(data, data.$control.files, callback),
+                attrs: {
+                    multiple: true,
+                },
             },
-        });
-        EL.makeIn(data, 'label', {
-            parent: data.$container,
-            class: 'ui_file_chooser_label',
-            text: '...',
-            $: 'filename',
+            {
+                tag: 'label',
+                class: 'ui_file_chooser_label',
+                text: '...',
+                $: 'filename',
+            }
+        ]);
+        EL.configIn(data, data.$container, {
             events: {
                 click: () => data.$control.click(),
-                drop: (e) => process(e.dataTransfer.files),
+                drop: (e) => process(data, e.dataTransfer.files, callback),
             },
         });
+
         if (id) this.#controls.set(id, new ControlFile(data));
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
@@ -796,8 +796,7 @@ export default class UI {
         });
     }
 
-    _makeContainer(label) {
-        let data = {};
+    _makeContainer(data, label, children = []) {
         EL.makeIn(data, 'div', {
             $: 'container',
             class: 'ui_container',
@@ -812,10 +811,10 @@ export default class UI {
                             text: label,
                         }
                     ]
-                }
+                },
+                ...children
             ],
         });
-        return data;
     }
     _makeContainerOut(label, value) {
         let data = {};
