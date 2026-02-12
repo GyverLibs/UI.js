@@ -31,7 +31,7 @@
     background: none;
 }
 
-.ui_main.noback .ui_container {
+.ui_main.noback .ui_widget {
     border: 1px solid var(--mid);
     margin: 5px 0;
 }
@@ -53,6 +53,8 @@
     border-radius: 6px;
 }
 
+/* ========= title ========= */
+
 .ui_title_bar {
     text-align: center;
     font-weight: bold;
@@ -67,7 +69,9 @@
     padding: 4px;
 }
 
-.ui_container {
+/* ========= widget ========= */
+
+.ui_widget {
     margin: 5px;
     padding: 5px;
     border: none;
@@ -77,10 +81,16 @@
     border-radius: 5px;
 }
 
+.ui_widget.hidden {
+    display: none;
+}
+
+/* ========= range ========= */
+
 .ui_range_cont {
     display: flex;
     align-items: center;
-    padding: 8px 0 6px 0;
+    padding: 10px 0 6px 0;
 }
 
 .ui_range {
@@ -112,6 +122,8 @@
     border-radius: 50%;
 }
 
+/* ========= button ========= */
+
 .ui_button_cont {
     margin: 5px;
     gap: 5px;
@@ -135,6 +147,8 @@
 .ui_button:active {
     background: var(--back);
 }
+
+/* ========= checkbox ========= */
 
 .ui_checkbox_cont {
     cursor: pointer;
@@ -182,46 +196,52 @@
     font-weight: bold;
 }
 
+/* ========= label ========= */
+
 .ui_label {
-    margin-bottom: 3px;
     user-select: none;
     -webkit-user-select: none;
     cursor: default;
 }
 
-.ui_input {
-    box-sizing: border-box;
+/* ========= input base ========= */
+.ui_input_base {
     width: 100%;
-    padding: 5px;
-    height: 24px;
-    line-height: 24px;
-    border: 1px solid var(--border);
+    box-sizing: border-box;
     background: var(--back);
+    outline: none;
     color: var(--font-mid);
+    border: 1px solid var(--border);
+    transition: border-color 0.1s;
     border-radius: 4px;
+    margin-top: 4px;
 }
+
+.ui_input_base:focus {
+    border-color: var(--font-mid);
+}
+
+/* ========= input ========= */
+
+.ui_input {
+    height: 24px;
+    padding: 5px;
+    line-height: 24px;
+}
+
+/* ========= select ========= */
 
 .ui_select {
-    background: var(--back);
-    color: var(--font-mid);
-    width: 100%;
     height: 24px;
-    border: 1px solid var(--border);
-    border-radius: 0;
     padding: 0 2px;
     cursor: pointer;
-    border-radius: 4px;
 }
 
+/* ========= textarea ========= */
+
 .ui_textarea {
-    box-sizing: border-box;
     resize: vertical;
-    width: 100%;
     padding: 3px 5px;
-    border: 1px solid var(--border);
-    background: var(--back);
-    color: var(--font-mid);
-    border-radius: 4px;
 }
 
 .ui_textarea::-webkit-scrollbar {
@@ -237,6 +257,28 @@
     background: var(--border);
     border-radius: 4px;
 }
+
+/* ========= file ========= */
+
+.ui_file_chooser_label {
+    padding: 5px;
+    height: 24px;
+    display: block;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ui_file_chooser_label.active {
+    border-color: var(--font-mid);
+}
+
+.ui_file_chooser {
+    display: none;
+}
+
+/* ========= color ========= */
 
 .ui_color_cont {
     display: flex;
@@ -256,28 +298,4 @@
     background: none;
     height: 22px;
     width: 22px;
-}
-
-.ui_file_chooser {
-    display: none;
-}
-
-.ui_file_chooser_label {
-    background: var(--back);
-    color: var(--font-mid);
-    height: 24px;
-    border: 1px solid var(--border);
-    width: 100%;
-    display: block;
-    cursor: pointer;
-    padding: 5px;
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 4px;
-}
-
-.ui_file_chooser_label.active {
-    border-width: 2px;
 }

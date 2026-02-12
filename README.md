@@ -29,6 +29,12 @@ init(cfg);
 setTheme(theme);
 
 /**
+ * Use mouse wheel on Number, Slider and Select
+ * @param {Boolean} use 
+ */
+useWheel(use);
+
+/**
  * Destroy UI
  */
 destroy();
@@ -68,7 +74,7 @@ fromJson(json);
  * @param {string} id 
  * @returns {ControlInput}
  */
-getWidget(id);
+wdget(id);
 
 /**
  * Get control value
@@ -95,20 +101,51 @@ removeAll();
 // Change callback (id, value, text) - text for addSelect only
 onChange(cb);
 
-// widgets
+// Widgets
 addSwitch(id, label, value, callback);
 addNumber(id, label, value, step, callback);
 addText(id, label, value, callback);
 addSlider(id, label, value, min, max, step, callback);
-addArea(id, label, value, callback);
+addArea(id, label, value, callback, rows = 5);
 addHTML(id, label, value);
 addElement(id, label, value);
 addSelect(id, label, value, callback);
-addButton(id, label, callback);
-addButtons(buttons);
 addFile(id, label, callback);
 addColor(id, label, value, callback);
-addSpace(height);
+addLabel(id, label, value);
+addSpace(height = 5);
+addButton(id, label, callback);
+addButtons(buttons);    // {id: [label, callback]} | {id: label}
+```
+
+- При передаче id пустой строкой будет сгенерирован авто-id
+- В объекте UI автоматически создаются сеттеры/геттеры на id виджетов
+- Для Select добавляется геттер `<name>Text` для чтения значения как текста
+
+Можно обратиться к виджету как `ui.widget(id)` и получить доступ к:
+
+```js
+// для всех
+get label();    // подпись
+set label(v);   // подпись
+get value();    // значение
+set value(v);   // значение
+get input();    // HTMLElement виджета
+display(state); // скрыть/отобразить
+show();         // отобразить
+hide();         // скрыть
+remove();       // удалить
+default();      // установить значение по умолчанию
+
+// + для Select
+set options(options);   // установить список массивом строк
+get options();          // получить список массивом строк
+get text();             // получить значение как строку
+reset();
+
+// + для Color
+set valueInt(v);
+get valueInt();
 ```
 
 ## Пример
@@ -129,23 +166,8 @@ let ui = new UI({ title: "Test UI", theme: 'dark' })
     .addArea('area', 'Area', 'abc')
     .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
     .addButton('button', 'Button');
-```
 
-Можно обратиться к виджету как `.getWidget(id)` и получить доступ к
-```js
-get label();    // подпись
-set label(v);   // подпись
-get value();    // значение
-set value(v);   // значение
-get input();    // HTMLElement виджета
-display(state); // скрыть/отобразить
-show();         // отобразить
-hide();         // скрыть
-remove();       // удалить
-default();      // установить значение по умолчанию
-
-// для Select
-set options(options);   // установить список массивом строк
-get options();          // получить список массивом строк
-get text();             // получить значение как строку
+ui.number = 123;            // запись через авто-сеттер
+ui.widget('color').input;   // input-элемент
+ui.selectText;              // доп. поле для чтения Select
 ```
