@@ -130,6 +130,10 @@
     display: flex;
 }
 
+.ui_button_cont.hidden {
+    display: none;
+}
+
 .ui_button {
     cursor: pointer;
     background: var(--tab);
