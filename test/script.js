@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ui.widget('select').options = [1, 2, 3];
 
-    // return;
+    return;
 
     new UI({ x: '220px', title: 'Test UI', theme: 'dark noback' })
         .addFile('file', 'File')

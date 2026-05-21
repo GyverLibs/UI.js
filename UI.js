@@ -36,6 +36,7 @@ class Widget {
     }
     default() {
         this._state.value = this._default;
+        this.$input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 }
 class WidgetSelect extends Widget {
@@ -371,10 +372,7 @@ export default class UI {
             value: w._state.bind('value'),
             onInput: this._handleValue(w, id, el => _num(el.value), callback),
             onMousewheel: (e) => {
-                if (!this._wheel) {
-                    e.preventDefault();
-                    window.scrollBy({ top: e.deltaY, behavior: 'smooth' });
-                }
+                if (!this._wheel) e.target.blur();
             }
         }));
 
@@ -444,11 +442,17 @@ export default class UI {
                 value: w._state.bind('value'),
                 onInput: this._handleValue(w, id, el => _num(el.value), callback),
                 onMousewheel: (e) => {
-                    if (!this._wheel) return;
+                    if (!this._wheel) {
+                        e.target.blur();
+                        return;
+                    }
                     e.stopPropagation();
                     e.preventDefault();
                     e.el.value = e.el.valueAsNumber + Number(e.el.step) * (e.deltaY > 0 ? -1 : 1);
                     e.el.dispatchEvent(new Event('input'));
+                },
+                onDblclick: (e) => {
+                    w.default();
                 }
             }
         }, true));
@@ -566,7 +570,10 @@ export default class UI {
                 if (callback) callback(v, t);
             },
             onMousewheel: (e) => {
-                if (!this._wheel) return;
+                if (!this._wheel) {
+                    e.target.blur();
+                    return;
+                }
                 e.stopPropagation();
                 e.preventDefault();
 
