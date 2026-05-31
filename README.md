@@ -12,21 +12,24 @@
 ## Дока
 ```js
 /**
- * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light' | 'dark noback' | 'light noback'}, autoVar}
- * @returns {UI}
- */
-constructor(cfg = {});
-
-/**
- * @param {object} cfg {x, y, width {number | string px/%}, parent, title, zIndex, theme {'dark' | 'light' | 'dark noback' | 'light noback'}, autoVar}
- * @returns {UI}
- */
-init(cfg);
-
-/**
+ * 'dark' | 'light' | 'dark noback' | 'light noback'
  * @returns {UI}
  */
 setTheme(theme);
+
+/**
+ * Set position in widget list to append new. Call before .addXxxx. Set to null to add in end
+ * @param {*} index 
+ * @returns {UI}
+ */
+setCursor(index);
+
+/**
+ * Reset position in widget list to append new
+ * @param {*} index 
+ * @returns {UI}
+ */
+resetCursor();
 
 /**
  * Use mouse wheel on Number, Slider and Select
@@ -49,7 +52,7 @@ setLabels(labels);
  * Export values to object {id: value}
  * @returns {Object}
  */
-toObject();
+toObject(ids = null);
 
 /**
  * Export values to JSON {id: value}
@@ -69,29 +72,32 @@ fromObject(data);
  */
 fromJson(json);
 
+// amount of widgets
+count();
+
 /**
  * Get widget object
- * @param {string} id 
+ * @param {string|Number} idOrIndex 
  * @returns {ControlInput}
  */
-wdget(id);
+widget(idOrIndex);
 
 /**
- * Get control value
- * @param {string} id 
+ * Get widget value
+ * @param {string|Number} idOrIndex 
  */
-get(id);
+get(idOrIndex);
 
 /**
- * Set control value
- * @param {string} id 
+ * Set widget value
+ * @param {string|Number} idOrIndex 
  * @param {*} value 
  */
-set(id, value);
+set(idOrIndex, value);
 
 /**
- * Remove control
- * @param {string | Array} id 'id' | ['id']
+ * Remove widget
+ * @param {string|number|Array<string|number>} ids id | index | [id/index]
  */
 remove(ids);
 
@@ -121,16 +127,20 @@ addButtons(buttons);    // {id: [label, callback]} | {id: label}
 - При передаче id пустой строкой будет сгенерирован авто-id
 - В объекте UI автоматически создаются сеттеры/геттеры на id виджетов
 - Для Select добавляется геттер `<name>Text` для чтения значения как текста
+- Для Color добавляется сеттер и геттер `<name>Int` для значения как числа
 
 Можно обратиться к виджету как `ui.widget(id)` и получить доступ к:
 
 ```js
 // для всех
+get type();     // тип
 get label();    // подпись
 set label(v);   // подпись
 get value();    // значение
 set value(v);   // значение
 get input();    // HTMLElement виджета
+get container();// контейнер виджета
+call();         // вызвать обработчик
 display(state); // скрыть/отобразить
 show();         // отобразить
 hide();         // скрыть
@@ -140,12 +150,12 @@ default();      // установить значение по умолчанию
 // + для Select
 set options(options);   // установить список массивом строк
 get options();          // получить список массивом строк
-get text();             // получить значение как строку
+get valueText();        // получить значение как строку
 reset();
 
 // + для Color
-set valueInt(v);
-get valueInt();
+set valueInt(v);        // установить значение как число
+get valueInt();         // получить значение как число
 ```
 
 ## Пример

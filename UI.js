@@ -3,9 +3,14 @@ import { addCSS, EL, State } from '@alexgyver/component';
 
 //#region Widget
 class Widget {
-    constructor(value, label) {
+    constructor(value, label, callback, type) {
         this._default = value;
         this._state = new State({ value, label, hidden: false });
+        this._cb = callback;
+        this._type = type;
+    }
+    get type() {
+        return this._type;
     }
     get label() {
         return this._state.label;
@@ -22,6 +27,12 @@ class Widget {
     get input() {
         return this.$input;
     }
+    get container() {
+        return this.$container;
+    }
+    call() {
+        if (this._cb) this._cb(this.value);
+    }
     display(state) {
         this._state.hidden = !state;
     }
@@ -36,7 +47,6 @@ class Widget {
     }
     default() {
         this._state.value = this._default;
-        this.$input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 }
 class WidgetSelect extends Widget {
@@ -45,15 +55,22 @@ class WidgetSelect extends Widget {
     }
     set options(options) {
         this._state.options = _getOptions(options);
+        if (this.value >= this._state.options.length) this.value = 0;
     }
     get options() {
         return this._state.options.map(opt => opt.text);
     }
+    get text() {
+        return this.valueText;
+    }
+    get valueText() {
+        return this.options?.[this.value] ?? '';
+    }
     reset() {
         this.value = 0;
     }
-    get text() {
-        return this.options[this.value];
+    call() {
+        if (this._cb) this._cb(this.value, this.valueText);
     }
 }
 class WidgetColor extends Widget {
@@ -61,7 +78,8 @@ class WidgetColor extends Widget {
         super(value, label);
     }
     set valueInt(v) {
-        return this.value = '#' + v.toString(16).padStart(6, 0);
+        v = Math.max(0, Math.min(0xffffff, v | 0));
+        return this.value = '#' + v.toString(16).padStart(6, '0');
     }
     get valueInt() {
         return parseInt(this.value.slice(1), 16);
@@ -162,6 +180,26 @@ export default class UI {
     }
 
     /**
+     * Set position in widget list to append new. Call before .addXxxx. Set to null to add in end
+     * @param {*} index 
+     * @returns {UI}
+     */
+    setCursor(index) {
+        this._before = index;
+        return this;
+    }
+
+    /**
+     * Reset position in widget list to append new
+     * @param {*} index 
+     * @returns {UI}
+     */
+    resetCursor() {
+        this._before = null;
+        return this;
+    }
+
+    /**
      * Use mouse wheel on Number, Slider and Select
      * @param {Boolean} use 
      */
@@ -197,9 +235,17 @@ export default class UI {
      * Export values to object {id: value}
      * @returns {Object}
      */
-    toObject() {
+    toObject(ids = null) {
         let obj = {};
-        this._widgets.forEach((val, key) => obj[key] = val.value);
+        (Array.isArray(ids) ? ids : Array.from(this._widgets.keys())).forEach(id => {
+            if (this._widgets.has(id)) {
+                obj[id] = this.widget(id).value;
+                let t = this.widget(id).valueText;
+                if (t) obj[id + 'Text'] = t;
+                let i = this.widget(id).valueInt;
+                if (i != null && !Number.isNaN(i)) obj[id + 'Int'] = i;
+            }
+        });
         return obj;
     }
 
@@ -228,61 +274,68 @@ export default class UI {
      * @param {JSON} data
      */
     fromJson(json) {
-        this.fromObject(JSON.parse(json));
+        try {
+            this.fromObject(JSON.parse(json));
+        } catch (e) {
+            console.warn('UI.fromJson: invalid JSON', e);
+        }
+    }
+
+    // amount of widgets
+    count() {
+        return this._widgets.size;
     }
 
     /**
-     * Get control object
-     * @param {string} id 
+     * Get widget object
+     * @param {string|Number} idOrIndex 
      * @returns {ControlInput}
      */
-    widget(id) {
+    widget(idOrIndex) {
+        const id = this._ID(idOrIndex);
         return this._widgets.get(id);
     }
     // legacy
-    getWidget = (id) => this.widget(id);
-    control = (id) => this.widget(id);
+    getWidget = this.widget;
+    control = this.widget;
 
     /**
-     * Get control value
-     * @param {string} id 
+     * Get widget value
+     * @param {string|Number} idOrIndex 
      */
-    get(id) {
-        return this._widgets.has(id) ? this.widget(id).value : null;
+    get(idOrIndex) {
+        const widget = this.widget(idOrIndex);
+        return widget ? widget.value : null;
     }
 
     /**
-     * Set control value
-     * @param {string} id 
+     * Set widget value
+     * @param {string|Number} idOrIndex 
      * @param {*} value 
      */
-    set(id, value) {
-        if (this._widgets.has(id)) {
-            this.widget(id).value = value;
-        }
+    set(idOrIndex, value) {
+        const widget = this.widget(idOrIndex);
+        if (widget) widget.value = value;
         return value;
     }
 
     /**
-     * Remove control
-     * @param {string | Array} id 'id' | ['id']
+     * Remove widget
+     * @param {string|number|Array<string|number>} ids id | index | [id/index]
      */
     remove(ids) {
-        if (typeof ids === 'string') ids = [ids];
+        if (!Array.isArray(ids)) ids = [ids];
 
-        for (let id of ids) {
+        for (let idOrIndex of ids) {
+            const id = this._ID(idOrIndex);
+
             if (this._widgets.has(id)) {
                 this.widget(id).remove();
                 this._widgets.delete(id);
+
                 delete this[id];
                 delete this[id + 'Text'];
-                // Object.defineProperty(this, id, {
-                //     get: undefined,
-                //     set: undefined,
-                // });
-                // Object.defineProperty(this, id + 'Text', {
-                //     get: undefined,
-                // });
+                delete this[id + 'Int'];
             }
         }
     }
@@ -310,7 +363,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(Boolean(value), label);
+        const w = new Widget(Boolean(value), label, callback, 'switch');
 
         EL.make('div', this._getWidget(w, {
             tag: 'label',
@@ -361,7 +414,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_num(value), label);
+        const w = new Widget(_num(value), label, callback, 'number');
 
         EL.make('div', this._getContainer(w, {
             tag: 'input',
@@ -370,8 +423,8 @@ export default class UI {
             class: 'ui_input_base ui_input',
             step: (step ?? 1),
             value: w._state.bind('value'),
-            onInput: this._handleValue(w, id, el => _num(el.value), callback),
-            onMousewheel: (e) => {
+            onInput: this._handleValue(w, id, el => _numInput(el.value), callback),
+            onWheel: (e) => {
                 if (!this._wheel) e.target.blur();
             }
         }));
@@ -394,7 +447,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_str(value), label);
+        const w = new Widget(_str(value), label, callback, 'text');
 
         EL.make('div', this._getContainer(w, {
             tag: 'input',
@@ -427,7 +480,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_num(value), label);
+        const w = new Widget(_num(value), label, callback, 'slider');
 
         EL.make('div', this._getContainer(w, {
             class: 'ui_range_cont',
@@ -441,7 +494,7 @@ export default class UI {
                 step: step ?? 1,
                 value: w._state.bind('value'),
                 onInput: this._handleValue(w, id, el => _num(el.value), callback),
-                onMousewheel: (e) => {
+                onWheel: (e) => {
                     if (!this._wheel) {
                         e.target.blur();
                         return;
@@ -453,6 +506,7 @@ export default class UI {
                 },
                 onDblclick: (e) => {
                     w.default();
+                    e.el.dispatchEvent(new Event('input'));
                 }
             }
         }, true));
@@ -476,7 +530,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_str(value), label);
+        const w = new Widget(_str(value), label, callback, 'area');
 
         EL.make('div', this._getContainer(w, {
             tag: 'textarea',
@@ -504,7 +558,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_str(value), label);
+        const w = new Widget(_str(value), label, null, 'html');
 
         EL.make('div', this._getContainer(w, {
             $: 'input',
@@ -528,7 +582,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(value, label);
+        const w = new Widget(value, label, null, 'element');
 
         EL.make('div', this._getContainer(w, {
             $: 'input',
@@ -546,7 +600,7 @@ export default class UI {
      * @param {string} id 
      * @param {string} label 
      * @param {array} value 
-     * @param {function} callback 
+     * @param {function} callback (val, text)
      * @returns {UI}
      */
     addSelect(id, label, value, callback) {
@@ -569,7 +623,7 @@ export default class UI {
                 this._cb(id, v, t);
                 if (callback) callback(v, t);
             },
-            onMousewheel: (e) => {
+            onWheel: (e) => {
                 if (!this._wheel) {
                     e.target.blur();
                     return;
@@ -589,7 +643,7 @@ export default class UI {
         this._widgets.set(id, w);
         if (this._addSetGet(id)) {
             Object.defineProperty(this, id + 'Text', {
-                get: () => this.widget(id).text,
+                get: () => this.widget(id).valueText,
                 configurable: true,
             });
         }
@@ -608,7 +662,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(0, label);
+        const w = new Widget(0, label, callback, 'button');
 
         EL.make('div', this._getWidget(w, this._getButton(w, id, callback), 'ui_button_cont'));
 
@@ -626,6 +680,7 @@ export default class UI {
         let container = EL.make('div', {
             class: 'ui_button_cont',
             parent: this.$widgets,
+            insertBefore: this._before,
         });
 
         EL.update(container, {
@@ -636,7 +691,7 @@ export default class UI {
                 if (!Array.isArray(btn)) btn = [btn, null];
                 let [label, cb] = btn;
 
-                const w = new Widget(0, label);
+                const w = new Widget(0, label, cb, 'button');
                 w.$container = container;
                 this._widgets.set(id, w);
                 return this._getButton(w, id, cb);
@@ -676,8 +731,11 @@ export default class UI {
                 type: 'file',
                 $: 'input',
                 class: 'ui_file_chooser',
-                onChange: () => process(w, w.$input.files, callback),
                 attrs: { multiple: true },
+                onChange: () => {
+                    process(w, w.$input.files, callback);
+                    w.$input.value = '';
+                },
             },
             {
                 tag: 'label',
@@ -712,7 +770,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new WidgetColor(value ?? '#000', label);
+        const w = new WidgetColor(_color(value), label);
 
         let cont = EL.make('div', this._getContainer(w, null, true));
 
@@ -730,7 +788,13 @@ export default class UI {
         });
 
         this._widgets.set(id, w);
-        this._addSetGet(id);
+        if (this._addSetGet(id)) {
+            Object.defineProperty(this, id + 'Int', {
+                get: () => this.widget(id).valueInt,
+                set: (val) => this.widget(id).valueInt = val,
+                configurable: true,
+            });
+        }
         return this;
     }
 
@@ -746,7 +810,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_str(value), label);
+        const w = new Widget(_str(value), label, null, 'label');
 
         EL.make('div', this._getContainer(w, null, true));
 
@@ -761,6 +825,7 @@ export default class UI {
         EL.make('div', {
             style: `height: ${height}px`,
             parent: this.$widgets,
+            insertBefore: this._before,
         });
         return this;
     }
@@ -777,7 +842,14 @@ export default class UI {
     }
 
     _checkID(id) {
-        return id ? id : '_empty_' + this._count++;
+        return id ? id : '_noid_' + this._count++;
+    }
+    _ID(idOrIndex) {
+        if (typeof idOrIndex === 'number') {
+            if (idOrIndex < 0) idOrIndex += this._widgets.size;
+            return [...this._widgets.keys()][idOrIndex];
+        }
+        return idOrIndex;
     }
 
     _getWidget = (w, content, cls = 'ui_widget') => ({
@@ -788,6 +860,7 @@ export default class UI {
             hidden: w._state.bind('hidden'),
         },
         parent: this.$widgets,
+        insertBefore: this._before,
         child: content,
     })
 
@@ -827,6 +900,9 @@ export default class UI {
     _handleValue(w, id, map, cb) {
         return (e) => {
             const v = map(e.el);
+            if (e.el.type !== 'checkbox' && e.el.value != v) {
+                e.el.value = v;
+            }
             w._state.value = v;
             this._cb(id, v);
             if (cb) cb(v);
@@ -835,6 +911,7 @@ export default class UI {
 
     _wheel = false;
     _widgets = new Map();
+    _before = null;
     _count = 0;
     _cb = () => { };
 
@@ -843,5 +920,14 @@ export default class UI {
 }
 
 const _str = x => String(x ?? '');
+const _getOptions = (arr) => (Array.isArray(arr) ? arr : []).map((x, i) => ({ tag: 'option', text: x, value: i }));
+const _color = x => Number.isInteger(x) ? '#' + Math.max(0, Math.min(0xffffff, x)).toString(16).padStart(6, '0') : (x ?? '#000');
+
 const _num = x => Number.isFinite(+x) ? +x : 0;
-const _getOptions = (arr) => arr.map((x, i) => ({ tag: 'option', text: x, value: i }));
+const _numInput = x => {
+    if (x == null || x === '') return '';
+
+    return String(x)
+        .replace(',', '.')
+        .replace(/^(-?)0+(\d)/, (_, sign, d) => d === '0' ? sign + '0' : sign + d);
+};
