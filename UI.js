@@ -927,7 +927,9 @@ const _num = x => Number.isFinite(+x) ? +x : 0;
 const _numInput = x => {
     if (x == null || x === '') return '';
 
-    return String(x)
+    const v = String(x)
         .replace(',', '.')
         .replace(/^(-?)0+(\d)/, (_, sign, d) => d === '0' ? sign + '0' : sign + d);
+
+    return Number.isFinite(+v) ? +v : '';
 };
