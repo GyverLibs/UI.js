@@ -6,16 +6,18 @@
     --font: #000;
     --font-mid: #555;
     --thumb: var(--back);
+    --range_f: var(--mid);
 }
 
 .ui_main.theme-dark {
-    --border: #484d53;
-    --back: rgb(30, 35, 42);
+    --border: #4d5359;
+    --back: #1e232a;
     --mid: #22272E;
     --tab: #2D333B;
     --font: #ccc;
     --font-mid: #999;
     --thumb: var(--font-mid);
+    --range_f: #676e75;
 }
 
 .ui_main {
@@ -103,6 +105,10 @@
     background: var(--border);
     cursor: pointer;
     touch-action: none;
+}
+
+.ui_range:focus {
+    background: var(--range_f);
 }
 
 .ui_range::-webkit-slider-thumb {

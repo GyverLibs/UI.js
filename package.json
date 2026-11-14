@@ -1,28 +1,29 @@
 {
-  "name": "@alexgyver/ui",
-  "version": "1.7.13",
-  "description": "Simple UI builder",
-  "main": "./UI.js",
-  "module": "./UI.js",
-  "types": "./UI.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/GyverLibs/UI.js.git"
-  },
-  "author": "AlexGyver <alex@alexgyver.ru>",
-  "license": "MIT",
-  "scripts": {
-    "build": "webpack --config ./webpack.config.js",
-    "dev": "webpack serve --config ./webpack.dev.config.js & webpack --config ./webpack.dev.config.js"
-  },
-  "devDependencies": {
-    "webpack": "^5.107.2",
-    "webpack-cli": "^7.0.3",
-    "webpack-dev-server": "^5.2.4",
-    "style-loader": "^4.0.0",
-    "css-loader": "^7.1.4"
-  },
-  "dependencies": {
-    "@alexgyver/component": "^2.1.4"
-  }
+    "name": "@alexgyver/ui",
+    "version": "1.7.17",
+    "description": "Simple UI builder",
+    "main": "./UI.js",
+    "module": "./UI.js",
+    "types": "./UI.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/GyverLibs/UI.js.git"
+    },
+    "author": "AlexGyver <alex@alexgyver.ru>",
+    "license": "MIT",
+    "scripts": {
+        "build": "webpack --config ./webpack.config.js",
+        "dev": "webpack serve --config ./webpack.dev.config.js"
+    },
+    "devDependencies": {
+        "webpack": "^5.112.2",
+        "webpack-cli": "^7.3.1",
+        "webpack-dev-server": "^6.1.0",
+        "style-loader": "^4.0.0",
+        "css-loader": "^7.1.5"
+    },
+    "dependencies": {
+        "@alexgyver/component": "^2.1.5",
+        "@alexgyver/utils": "1.2.18"
+    }
 }

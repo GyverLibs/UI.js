@@ -83,6 +83,13 @@ count();
 widget(idOrIndex);
 
 /**
+ * Get widget objects
+ * @param {Array string|Number} idOrIndex 
+ * @returns {ControlInput}
+ */
+widgets(idsOrIndexs);
+
+/**
  * Get widget value
  * @param {string|Number} idOrIndex 
  */

@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .addButton('button', 'Button')
 
     ui.onChange((id, val, t) => console.log(id, val, t));
+    ui.useWheel(1);
 
     function changef(val, t) {
         console.log(val, t);
@@ -29,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ui.widget('select').options = [1, 2, 3];
 
-    return;
+
 
     new UI({ x: '220px', title: 'Test UI', theme: 'dark noback' })
         .addFile('file', 'File')
