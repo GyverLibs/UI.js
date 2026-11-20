@@ -829,6 +829,11 @@ export default class UI {
                 onPointerup: release,
                 onPointercancel: release,
                 onLostpointercapture: release,
+                onDblclick: (e) => {
+                    e.preventDefault();
+                    w.default();
+                    this._emitChange(id, w.value, callback);
+                },
                 child: {
                     class: 'ui_joystick_stick',
                     $: 'stick'

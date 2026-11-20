@@ -1,5 +1,5 @@
-import UI from 'https://gyverlibs.github.io/UI.js/UI.min.js'
-// import UI from "../UI.js";
+// import UI from 'https://gyverlibs.github.io/UI.js/UI.min.js'
+import UI from "../UI.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     let ui = new UI({ title: 'Test UI', theme: 'dark' })
