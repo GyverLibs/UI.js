@@ -1,5 +1,5 @@
-// import UI from 'https://gyverlibs.github.io/UI.js/UI.min.js'
-import UI from "../UI.js";
+import UI from 'https://gyverlibs.github.io/UI.js/UI.min.js'
+// import UI from "../UI.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     let ui = new UI({ title: 'Test UI', theme: 'dark' })
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .addLabel('label', 'Text', 'Value')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
-        .addJoystick('joy', 'Joy', true)
+        .addJoystick('joy', 'Joy', false)
         .addProgress('prog', 'Progress', 35)
 
     ui.onChange((id, val, t) => console.log(id, val, t));
