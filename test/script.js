@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .addLabel('label', 'Text', 'Value')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
+        .addJoystick('joy', 'Joy', true)
+        .addProgress('prog', 'Progress', 35)
 
     ui.onChange((id, val, t) => console.log(id, val, t));
     ui.useWheel(1);
@@ -30,8 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ui.widget('select').options = [1, 2, 3];
 
-
-
     new UI({ x: '220px', title: 'Test UI', theme: 'dark noback' })
         .addFile('file', 'File')
         .addText('text', 'Text', '')
@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .addLabel('label', 'Text', 'Value')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
+        .addJoystick('joy', 'Joy')
+        .addProgress('prog', 'Progress', 35)
 
     new UI({ x: '440px', title: 'Test UI', theme: 'light' })
         .addFile('file', 'File')
@@ -59,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .addLabel('label', 'Text', 'Value')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
+        .addJoystick('joy', 'Joy')
+        .addProgress('prog', 'Progress', 35)
 
     new UI({ x: '660px', title: 'Test UI', theme: 'light noback' })
         .addFile('file', 'File')
@@ -73,4 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .addLabel('label', 'Text', 'Value')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
+        .addJoystick('joy', 'Joy')
+        .addProgress('prog', 'Progress', 35)
 });

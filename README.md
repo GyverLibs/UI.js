@@ -1,190 +1,162 @@
 # UI.js
-Конструктор для создания простого меню настроек
 
-[demo](https://gyverlibs.github.io/UI.js/test/)
+Конструктор для создания простого меню настроек в браузере
 
-![test](/img/test.png)
+[Демо](https://gyverlibs.github.io/UI.js/test/)
 
-> **Browser**: https://gyverlibs.github.io/UI.js/UI.min.js
+![Пример интерфейса](/img/test.png)
 
-> **Node**: npm i @alexgyver/ui
+**Browser:** https://gyverlibs.github.io/UI.js/UI.min.js  
+**Node:** `npm i @alexgyver/ui`
 
-## Дока
+## Быстрый старт
+
 ```js
-/**
- * 'dark' | 'light' | 'dark noback' | 'light noback'
- * @returns {UI}
- */
-setTheme(theme);
+const ui = new UI({ title: 'Control', theme: 'dark' });
 
-/**
- * Set position in widget list to append new. Call before .addXxxx. Set to null to add in end
- * @param {*} index 
- * @returns {UI}
- */
-setCursor(index);
+ui.addSlider('speed', 'Speed', 50, 0, 100, 1, v => console.log(v));
+ui.addSwitch('enabled', 'Enabled', true);
+ui.addProgress('load', 'Load', 25);
 
-/**
- * Reset position in widget list to append new
- * @param {*} index 
- * @returns {UI}
- */
-resetCursor();
+ui.speed = 75;
+ui.set('load', 60);
+console.log(ui.get('speed'));
+```
 
-/**
- * Use mouse wheel on Number, Slider and Select
- * @param {Boolean} use 
- */
-useWheel(use);
+В сборке для браузера используется глобальный `UI`. При использовании пакета импортируй класс из `@alexgyver/ui` согласно формату сборки проекта.
 
-/**
- * Destroy UI
- */
-destroy();
+## Методы UI
 
-/**
- * Set labels from object
- * @param {object} labels {id: label} 
- */
-setLabels(labels);
+```js
+// настройки панели
+setTheme(theme);                  // 'dark', 'light', 'dark noback', 'light noback'
+setCursor(index);                 // позиция вставки следующего виджета
+resetCursor();                    // сброс позиции вставки
+useWheel(use);                    // колесо мыши для Number, Slider и Select
+setLabels(labels);                // установить подписи из объекта { id: label }
+onChange(callback);               // общий обработчик (id, value, text)
 
-/**
- * Export values to object {id: value}
- * @returns {Object}
- */
+// значения и виджеты
+get(idOrIndex);
+set(idOrIndex, value);
+widget(idOrIndex);
+widgets(idsOrIndexes);
+count();
 toObject(ids = null);
-
-/**
- * Export values to JSON {id: value}
- * @returns {JSON}
- */
 toJson();
-
-/**
- * Import values {id: value}
- * @param {Object} data
- */
 fromObject(data);
-
-/**
- * Import values {id: value}
- * @param {JSON} data
- */
 fromJson(json);
 
-// amount of widgets
-count();
-
-/**
- * Get widget object
- * @param {string|Number} idOrIndex 
- * @returns {ControlInput}
- */
-widget(idOrIndex);
-
-/**
- * Get widget objects
- * @param {Array string|Number} idOrIndex 
- * @returns {ControlInput}
- */
-widgets(idsOrIndexs);
-
-/**
- * Get widget value
- * @param {string|Number} idOrIndex 
- */
-get(idOrIndex);
-
-/**
- * Set widget value
- * @param {string|Number} idOrIndex 
- * @param {*} value 
- */
-set(idOrIndex, value);
-
-/**
- * Remove widget
- * @param {string|number|Array<string|number>} ids id | index | [id/index]
- */
-remove(ids);
-
-// Remove all widgets
+// удаление
+remove(ids);                     // id, индекс или массив id/индексов
 removeAll();
+destroy();
 
-// Change callback (id, value, text) - text for addSelect only
-onChange(cb);
-
-// Widgets
+// виджеты
 addSwitch(id, label, value, callback);
 addNumber(id, label, value, step, callback);
 addText(id, label, value, callback);
+addInput(id, label, value, callback); // псевдоним addText
 addSlider(id, label, value, min, max, step, callback);
+addRange(id, label, value, min, max, step, callback); // псевдоним addSlider
+addProgress(id, label, value = 0, min = 0, max = 100);
+addJoystick(id, label, returnCenter = true, callback);
 addArea(id, label, value, callback, rows = 5);
 addHTML(id, label, value);
 addElement(id, label, value);
-addSelect(id, label, value, callback);
+addSelect(id, label, options, callback);
 addFile(id, label, callback);
 addColor(id, label, value, callback);
 addLabel(id, label, value);
 addSpace(height = 5);
 addButton(id, label, callback);
-addButtons(buttons);    // {id: [label, callback]} | {id: label}
+addButtons(buttons);             // { id: [label, callback] } или { id: label }
+
+// группы
+addGroup(id, label, callback, expanded = false);
+beginGroup(id, label, expanded = false);
+endGroup();
 ```
 
-- При передаче id пустой строкой будет сгенерирован авто-id
-- В объекте UI автоматически создаются сеттеры/геттеры на id виджетов
-- Для Select добавляется геттер `<name>Text` для чтения значения как текста
-- Для Color добавляется сеттер и геттер `<name>Int` для значения как числа
+`setCursor()` задаёт позицию вставки новых элементов, `resetCursor()` возвращает добавление в конец. Методы `addXxx()` возвращают экземпляр `UI`, поэтому их можно вызывать цепочкой.
 
-Можно обратиться к виджету как `ui.widget(id)` и получить доступ к:
+Если `id` не задан или передана пустая строка, создаётся автоматический ID. При включённом `autoVar` (по умолчанию) значение виджета доступно также как свойство `ui.id`. Для `Select` создаётся геттер `ui.idText`, для `Color` - геттер и сеттер `ui.idInt`.
+
+Программное изменение через `ui.set()`, `ui.id` или `widget.value` обновляет интерфейс, но не вызывает обработчик изменения. События пользовательского ввода передаются в общий `onChange()` и в callback конкретного виджета. Для `Select` дополнительно передаётся текст выбранного варианта.
+
+## Методы виджета
+
+Объект виджета доступен через `ui.widget(id)`:
 
 ```js
-// для всех
-get type();     // тип
-get label();    // подпись
-set label(v);   // подпись
-get value();    // значение
-set value(v);   // значение
-get input();    // HTMLElement виджета
-get container();// контейнер виджета
-call();         // вызвать обработчик
-display(state); // скрыть/отобразить
-show();         // отобразить
-hide();         // скрыть
-remove();       // удалить
-default();      // установить значение по умолчанию
+const w = ui.widget('speed');
 
-// + для Select
-set options(options);   // установить список массивом строк
-get options();          // получить список массивом строк
-get valueText();        // получить значение как строку
-reset();
-
-// + для Color
-set valueInt(v);        // установить значение как число
-get valueInt();         // получить значение как число
+w.type;            // тип
+w.label;           // подпись, можно изменять
+w.value;           // значение, можно изменять
+w.input;           // элемент ввода, если предусмотрен
+w.container;       // корневой HTMLElement
+w.call();          // вызвать локальный callback
+w.display(true);   // показать или скрыть
+w.show();
+w.hide();
+w.default();       // восстановить начальное значение
 ```
 
-## Пример
+Для удаления виджета вместе с регистрацией в UI используй `ui.remove(id)`, а не `widget.remove()`.
+
+Дополнительные свойства и методы:
+
 ```js
-function file_h(file) {
-}
-// остальные обработчики не указаны, это пример
+// Select
+w.options;         // массив подписей, доступен для записи
+w.valueText;       // текст выбранного варианта
+w.text;            // псевдоним valueText
+w.reset();         // выбрать первый вариант
 
-let ui = new UI({ title: "Test UI", theme: 'dark' })
-    .addFile('file', 'File')
-    .addText('text', 'Text', '')
-    .addNumber('number', 'Number', 128, 1)
-    .addSlider('slider', 'Slider', 0, -180, 180, 5)
-    .addSelect('select', 'Select', ['Mode 1', 'mode2', 'MODE_3'])
-    .addHTML('html', 'HTML', '<h2>Hello</h2>')
-    .addSwitch('switch', 'Switch', 0)
-    .addColor('color', 'Color')
-    .addArea('area', 'Area', 'abc')
-    .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
-    .addButton('button', 'Button');
+// Color
+w.valueInt;        // числовой цвет 0x000000...0xffffff, чтение и запись
 
-ui.number = 123;            // запись через авто-сеттер
-ui.widget('color').input;   // input-элемент
-ui.selectText;              // доп. поле для чтения Select
+// Group
+w.expanded;        // состояние раскрытия, чтение и запись
+w.open();
+w.close();
+w.toggle();
 ```
+
+## Группы
+Через callback:
+
+```js
+ui.addGroup('motor', 'Motor', ui => {
+    ui.addSlider('speed', 'Speed', 50, 0, 100, 1);
+    ui.addSwitch('enabled', 'Enabled', true);
+});
+```
+
+Потоковое создание:
+
+```js
+ui.beginGroup('sensors', 'Sensors', false);
+ui.addProgress('temperature', 'Temperature', 25, 0, 100);
+ui.addProgress('battery', 'Battery', 80, 0, 100);
+ui.endGroup();
+
+ui.addButton('reset', 'Reset', () => ui.widget('sensors').open());
+```
+
+При удалении группы через `ui.remove('sensors')` удаляются все зарегистрированные в ней виджеты. Ручное скрытие отдельного виджета сохраняется при сворачивании и раскрытии группы. Группы не имеют пользовательского значения и не предназначены для экспорта как параметры настроек.
+
+## Сохранение настроек
+
+```js
+const data = ui.toObject();
+const json = ui.toJson();
+
+ui.fromObject(data);
+ui.fromJson(json);
+
+ui.setLabels({ speed: 'Скорость', enabled: 'Включено' });
+```
+
+`toObject(ids)` позволяет экспортировать только указанные виджеты. Для `Select` и `Color` в объект дополнительно включаются текстовое и числовое представления с суффиксами `Text` и `Int`.

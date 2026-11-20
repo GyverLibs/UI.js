@@ -2,11 +2,11 @@ import { addCSS, EL, State } from '@alexgyver/component';
 import { DeferredEmitter } from '@alexgyver/utils';
 // import './UI.css'
 
-//#region Widget
+// MARK: Widget
 class Widget {
     constructor(value, label, callback, type) {
         this._default = value;
-        this._state = new State({ value, label, hidden: false });
+        this._state = new State({ value, label, hidden: false, groupHidden: false });
         this._cb = callback;
         this._type = type;
     }
@@ -92,8 +92,116 @@ class WidgetFile extends Widget {
         this._state.addStates({ filename: '...', active: false });
     }
 }
+class WidgetJoystick extends Widget {
+    constructor(label, returnCenter, callback) {
+        super([0, 0], label, callback, 'joystick');
+        this.returnCenter = returnCenter;
+    }
 
-//#region UI
+    get value() {
+        return this._state.value;
+    }
+
+    set value(v) {
+        const x = Math.max(-1, Math.min(1, Number(v?.[0]) || 0));
+        const y = Math.max(-1, Math.min(1, Number(v?.[1]) || 0));
+
+        this._state.value = [x, y];
+        if (this.$stick) {
+            const radius = Math.max(0, (this.$input.clientWidth - this.$stick.offsetWidth) / 2);
+            this.$stick.style.left = `calc(50% + ${x * radius}px)`;
+            this.$stick.style.top = `calc(50% - ${y * radius}px)`;
+        }
+        if (this.$coords) this.$coords.textContent = `${x.toFixed(2)}, ${y.toFixed(2)}`;
+    }
+
+    // round
+    // set value(v) {
+    //     let x = Math.max(-1, Math.min(1, Number(v?.[0]) || 0));
+    //     let y = Math.max(-1, Math.min(1, Number(v?.[1]) || 0));
+    //     const len = Math.hypot(x, y);
+    //     if (len > 1) {
+    //         x /= len;
+    //         y /= len;
+    //     }
+
+    //     this._state.value = [x, y];
+    //     if (this.$stick) {
+    //         const radius = (this.$input.clientWidth - this.$stick.offsetWidth) / 2;
+    //         this.$stick.style.left = `calc(50% + ${x * radius}px)`;
+    //         this.$stick.style.top = `calc(50% - ${y * radius}px)`;
+    //     }
+    //     if (this.$coords) this.$coords.textContent = `${x.toFixed(2)}, ${y.toFixed(2)}`;
+    // }
+
+    default() {
+        this.value = [0, 0];
+    }
+}
+class WidgetProgress extends Widget {
+    constructor(value, label, min, max) {
+        super(0, label, null, 'progress');
+        this.min = Math.min(min, max);
+        this.max = Math.max(min, max);
+        this.value = value;
+        this._default = this.value;
+    }
+
+    get value() {
+        return this._state.value;
+    }
+
+    set value(v) {
+        v = Math.max(this.min, Math.min(this.max, _num(v)));
+        this._state.value = v;
+
+        const percent = this.max === this.min ? 0 : (v - this.min) / (this.max - this.min) * 100;
+        if (this.$fill) this.$fill.style.width = `${percent}%`;
+        if (this.$value) this.$value.textContent = String(v);
+    }
+
+    default() {
+        this.value = this._default;
+    }
+}
+class WidgetGroup extends Widget {
+    constructor(ui, label, expanded = true) {
+        super(null, label, null, 'group');
+        this._ui = ui;
+        this.ids = new Set();
+        this.nodes = [];
+        this._state.addStates({ expanded: Boolean(expanded) });
+    }
+
+    get expanded() {
+        return this._state.expanded;
+    }
+
+    set expanded(v) {
+        this._state.expanded = Boolean(v);
+
+        for (const id of this.ids) {
+            const w = this._ui.widget(id);
+            if (w) w._state.groupHidden = !this.expanded;
+        }
+
+        for (const node of this.nodes) node.style.display = this.expanded ? '' : 'none';
+    }
+
+    open() {
+        this.expanded = true;
+    }
+
+    close() {
+        this.expanded = false;
+    }
+
+    toggle() {
+        this.expanded = !this.expanded;
+    }
+}
+
+// MARK: UI
 export default class UI {
     /**
      * @param {object} cfg {x, y, width {number px | string px/%}, parent, title, zIndex, autoVar, class, theme {'dark' | 'light' | 'dark noback' | 'light noback'}}
@@ -171,7 +279,7 @@ export default class UI {
         return this.setTheme(cfg.theme);
     }
 
-    //#region methods
+    // MARK: methods
 
     /**
      * 'dark' | 'light' | 'dark noback' | 'light noback'
@@ -339,15 +447,24 @@ export default class UI {
 
         for (let idOrIndex of ids) {
             const id = this._ID(idOrIndex);
+            if (!this._widgets.has(id)) continue;
 
-            if (this._widgets.has(id)) {
-                this.widget(id).remove();
-                this._widgets.delete(id);
+            const w = this.widget(id);
 
-                delete this[id];
-                delete this[id + 'Text'];
-                delete this[id + 'Int'];
+            if (w instanceof WidgetGroup) {
+                for (const childId of [...w.ids]) this.remove(childId);
+                for (const node of w.nodes) node.remove();
+                if (this._group === w) this._group = null;
+            } else {
+                w._group?.ids.delete(id);
             }
+
+            w.remove();
+            this._widgets.delete(id);
+
+            delete this[id];
+            delete this[id + 'Text'];
+            delete this[id + 'Int'];
         }
     }
 
@@ -362,7 +479,78 @@ export default class UI {
         this._cb = cb;
     }
 
-    //#region addSwitch
+    // MARK: group
+
+    /**
+     * @param {string} id
+     * @param {string} label
+     * @param {boolean} expanded
+     * @returns {UI}
+     */
+    beginGroup(id, label, expanded = false) {
+        if (this._group) throw new Error('UI.beginGroup: nested groups are not supported');
+
+        id = this._checkID(id);
+        if (this._widgets.has(id)) return this;
+
+        const w = new WidgetGroup(this, label, expanded);
+
+        EL.make('div', this._getWidget(w, {
+            class: 'ui_group_head',
+            onClick: () => w.toggle(),
+            child: [
+                { tag: 'b', text: w._state.bind('label') },
+                {
+                    tag: 'span',
+                    class: {
+                        _raw: 'ui_group_chevron',
+                        expanded: w._state.bind('expanded')
+                    }
+                }
+            ]
+        }, 'ui_widget ui_group'));
+
+        this._widgets.set(id, w);
+        this._group = w;
+
+        return this;
+    }
+
+    endGroup() {
+        if (!this._group) return this;
+
+        const w = this._group;
+        const space = EL.make('div', {
+            class: 'ui_group_space',
+            parent: this.$widgets,
+            insertBefore: this._before,
+        });
+
+        w.nodes.push(space);
+        space.style.display = w.expanded ? '' : 'none';
+        this._group = null;
+
+        return this;
+    }
+
+    /**
+     * @param {string} id
+     * @param {string} label
+     * @param {function} callback
+     * @param {boolean} expanded
+     * @returns {UI}
+     */
+    addGroup(id, label, callback, expanded = false) {
+        this.beginGroup(id, label, expanded);
+        try {
+            if (callback) callback(this);
+        } finally {
+            this.endGroup();
+        }
+        return this;
+    }
+
+    // MARK: addSwitch
     /**
      * @param {string} id 
      * @param {string} label 
@@ -406,12 +594,12 @@ export default class UI {
             ]
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addNumber
+    // MARK: addNumber
 
     /**
      * @param {string} id 
@@ -440,12 +628,12 @@ export default class UI {
             }
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addText
+    // MARK: addText
 
     /**
      * @param {string} id 
@@ -469,13 +657,13 @@ export default class UI {
             onInput: this._handleValue(w, id, el => _str(el.value), callback),
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
     addInput = (...args) => this.addText(...args);
 
-    //#region addSlider
+    // MARK: addSlider
 
     /**
      * @param {string} id 
@@ -522,13 +710,138 @@ export default class UI {
             }
         }, true));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
     addRange = (...args) => this.addSlider(...args);
 
-    //#region addArea
+    // MARK: addProgress
+
+    /**
+     * @param {string} id
+     * @param {string} label
+     * @param {number} value
+     * @param {number} min
+     * @param {number} max
+     * @returns {UI}
+     */
+    addProgress(id, label, value = 0, min = 0, max = 100) {
+        id = this._checkID(id);
+        if (this._widgets.has(id)) return this;
+
+        const w = new WidgetProgress(value, label, min, max);
+
+        EL.make('div', this._getWidget(w, [
+            {
+                class: 'ui_progress_label',
+                child: [
+                    { tag: 'b', text: w._state.bind('label') },
+                    { tag: 'span', $: 'value' }
+                ]
+            },
+            {
+                class: 'ui_progress',
+                child: {
+                    class: 'ui_progress_fill',
+                    $: 'fill'
+                }
+            }
+        ]));
+
+        w.value = value;
+        this._registerWidget(id, w);
+        this._addSetGet(id);
+        return this;
+    }
+
+    // MARK: addJoystick
+
+    /**
+     * @param {string} id
+     * @param {string} label
+     * @param {boolean} returnCenter
+     * @param {function} callback
+     * @returns {UI}
+     */
+    addJoystick(id, label, returnCenter = true, callback) {
+        id = this._checkID(id);
+        if (this._widgets.has(id)) return this;
+
+        const w = new WidgetJoystick(label, returnCenter, callback);
+        let activePointer = null;
+
+        const update = e => {
+            const r = w.$input.getBoundingClientRect();
+            const radius = Math.max(1, (r.width - w.$stick.offsetWidth) / 2);
+            const x = (e.clientX - r.left - r.width / 2) / radius;
+            const y = -(e.clientY - r.top - r.height / 2) / radius;
+
+            w.value = [x, y];
+            this._emitChange(id, w.value, callback);
+        };
+
+        // round
+        // const update = e => {
+        //     const r = w.$input.getBoundingClientRect();
+        //     const radius = (r.width - w.$stick.offsetWidth) / 2;
+        //     const x = (e.clientX - r.left - r.width / 2) / radius;
+        //     const y = -(e.clientY - r.top - r.height / 2) / radius;
+
+        //     w.value = [x, y];
+        //     this._emitChange(id, w.value, callback);
+        // };
+
+        const release = e => {
+            if (e.pointerId !== activePointer) return;
+            activePointer = null;
+
+            if (w.returnCenter) {
+                w.value = [0, 0];
+                this._emitChange(id, w.value, callback);
+            }
+
+            if (w.$input.hasPointerCapture(e.pointerId)) w.$input.releasePointerCapture(e.pointerId);
+        };
+
+        EL.make('div', this._getWidget(w, [
+            {
+                class: 'ui_label',
+                child: [
+                    { tag: 'b', text: w._state.bind('label') },
+                    { tag: 'span', text: ': ' },
+                    { tag: 'span', $: 'coords', text: '0.00, 0.00' }
+                ]
+            },
+            {
+                class: 'ui_joystick',
+                $: 'input',
+                onPointerdown: e => {
+                    if (activePointer !== null || e.button !== 0) return;
+                    e.preventDefault();
+                    activePointer = e.pointerId;
+                    e.el.setPointerCapture(e.pointerId);
+                    update(e);
+                },
+                onPointermove: e => {
+                    if (e.pointerId === activePointer) update(e);
+                },
+                onPointerup: release,
+                onPointercancel: release,
+                onLostpointercapture: release,
+                child: {
+                    class: 'ui_joystick_stick',
+                    $: 'stick'
+                }
+            }
+        ]));
+
+        this._registerWidget(id, w);
+        this._addSetGet(id);
+        return this;
+    }
+
+    // MARK: addArea
 
     /**
      * @param {string} id 
@@ -552,12 +865,12 @@ export default class UI {
             onInput: this._handleValue(w, id, el => _str(el.value), callback),
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addHTML
+    // MARK: addHTML
 
     /**
      * @param {string} id 
@@ -576,12 +889,12 @@ export default class UI {
             html: w._state.bind('value'),
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addElement
+    // MARK: addElement
 
     /**
      * @param {string} id 
@@ -600,12 +913,12 @@ export default class UI {
             child_r: w._state.bind('value'),
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addSelect
+    // MARK: addSelect
 
     /**
      * @param {string} id 
@@ -651,7 +964,7 @@ export default class UI {
             },
         }));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         if (this._addSetGet(id)) {
             Object.defineProperty(this, id + 'Text', {
                 get: () => this.widget(id).valueText,
@@ -661,7 +974,7 @@ export default class UI {
         return this;
     }
 
-    //#region addButton
+    // MARK: addButton
 
     /**
      * @param {string} id 
@@ -677,11 +990,11 @@ export default class UI {
 
         EL.make('div', this._getWidget(w, this._getButton(w, id, callback), 'ui_button_cont'));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         return this;
     }
 
-    //#region addButtons
+    // MARK: addButtons
 
     /**
      * @param {object} buttons {id: [label, callback]}
@@ -704,14 +1017,14 @@ export default class UI {
 
                 const w = new Widget(0, label, cb, 'button');
                 w.$container = container;
-                this._widgets.set(id, w);
+                this._registerWidget(id, w);
                 return this._getButton(w, id, cb);
             })
         });
         return this;
     }
 
-    //#region addFile
+    // MARK: addFile
 
     /**
      * @param {string} id 
@@ -763,12 +1076,12 @@ export default class UI {
             onDrop: (e) => process(w, e.dataTransfer.files, callback),
         });
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addColor
+    // MARK: addColor
 
     /**
      * @param {string} id 
@@ -798,7 +1111,7 @@ export default class UI {
             }
         });
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         if (this._addSetGet(id)) {
             Object.defineProperty(this, id + 'Int', {
                 get: () => this.widget(id).valueInt,
@@ -809,7 +1122,7 @@ export default class UI {
         return this;
     }
 
-    //#region addLabel
+    // MARK: addLabel
 
     /**
      * @param {string} id 
@@ -825,23 +1138,29 @@ export default class UI {
 
         EL.make('div', this._getContainer(w, null, true));
 
-        this._widgets.set(id, w);
+        this._registerWidget(id, w);
         this._addSetGet(id);
         return this;
     }
 
-    //#region addSpace
+    // MARK: addSpace
 
     addSpace(height = 5) {
-        EL.make('div', {
+        const el = EL.make('div', {
             style: `height: ${height}px`,
             parent: this.$widgets,
             insertBefore: this._before,
         });
+
+        if (this._group) {
+            this._group.nodes.push(el);
+            if (!this._group.expanded) el.style.display = 'none';
+        }
+
         return this;
     }
 
-    //#region system
+    // MARK: system
     _addSetGet(id) {
         if (!this._autoVar || !id || typeof this[id] == 'function') return false;
         Object.defineProperty(this, id, {
@@ -863,12 +1182,23 @@ export default class UI {
         return idOrIndex;
     }
 
+    _registerWidget(id, w) {
+        this._widgets.set(id, w);
+
+        if (this._group) {
+            this._group.ids.add(id);
+            w._group = this._group;
+            w._state.groupHidden = !this._group.expanded;
+        }
+    }
+
     _getWidget = (w, content, cls = 'ui_widget') => ({
         ctx: w,
         $: 'container',
         class: {
             _raw: cls,
             hidden: w._state.bind('hidden'),
+            group_hidden: w._state.bind('groupHidden'),
         },
         parent: this.$widgets,
         insertBefore: this._before,
@@ -934,7 +1264,7 @@ export default class UI {
     _cb = () => { };
 
     // https://www.minifier.org/
-    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--tab:#f0f0f0;--font:#000;--font-mid:#555;--thumb:var(--back);--range_f:var(--mid)}.ui_main.theme-dark{--border:#4d5359;--back:#1e232a;--mid:#22272E;--tab:#2D333B;--font:#ccc;--font-mid:#999;--thumb:var(--font-mid);--range_f:#676e75}.ui_main{background-color:var(--mid);text-align:left;font:12px sans-serif;user-select:none;border:none;border-radius:6px}.ui_main.noback{background:none}.ui_main.noback .ui_widget{border:1px solid var(--mid);margin:5px 0}.ui_main.noback .ui_title_bar{display:none}.ui_main.noback .ui_button_cont{margin:5px 0}.ui_main.noback .ui_button{border:1px solid var(--mid)}.ui_content{overflow-y:auto;border-radius:6px}.ui_title_bar{text-align:center;font-weight:700;border:none;background:var(--tab);color:var(--font);font-size:15px;border-radius:5px 5px 0 0}.ui_title_bar:not(:empty){padding:4px}.ui_widget{margin:5px;padding:5px;border:none;position:relative;background:var(--tab);color:var(--font);border-radius:5px}.ui_widget.hidden{display:none}.ui_range_cont{display:flex;align-items:center;padding:10px 0 6px 0}.ui_range{appearance:none;box-sizing:border-box;margin:0;padding:0;width:100%;height:2px;background:var(--border);cursor:pointer;touch-action:none}.ui_range:focus{background:var(--range_f)}.ui_range::-webkit-slider-thumb{appearance:none;background:var(--thumb);width:16px;height:16px;border-radius:50%;box-shadow:0 0 4px #0000005a}.ui_range::-moz-range-thumb{border:none;background:var(--thumb);width:16px;height:16px;border-radius:50%}.ui_button_cont{margin:5px;gap:5px;display:flex}.ui_button_cont.hidden{display:none}.ui_button{cursor:pointer;background:var(--tab);color:var(--font-mid);height:26px;border-radius:4px;width:100%;border:none}.ui_button:hover{filter:brightness(.96)}.ui_button:active{background:var(--back)}.ui_checkbox_cont{cursor:pointer;display:flex;align-items:center;justify-content:space-between}.ui_checkbox_cont label{font-weight:700;pointer-events:none}.ui_checkbox{display:inline-block}.ui_checkbox label{display:flex;align-items:center;cursor:pointer;user-select:none}.ui_checkbox input{display:none}.ui_checkbox span{width:18px;height:18px;border:1px solid var(--border);border-radius:4px;background-color:var(--back);position:relative}.ui_checkbox input:checked+span::after{content:"✓";position:absolute;left:3px;top:-2px;font-size:16px;color:var(--font);font-weight:700}.ui_label{user-select:none;-webkit-user-select:none;cursor:default}.ui_input_base{width:100%;box-sizing:border-box;background:var(--back);outline:none;color:var(--font-mid);border:1px solid var(--border);transition:border-color 0.1s;border-radius:4px;margin-top:4px}.ui_input_base:focus{border-color:var(--font-mid)}.ui_input{height:24px;padding:5px;line-height:24px}.ui_select{height:24px;padding:0 2px;cursor:pointer}.ui_textarea{resize:vertical;padding:3px 5px}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}.ui_file_chooser_label{padding:5px;height:24px;display:block;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.ui_file_chooser_label.active{border-color:var(--font-mid)}.ui_file_chooser{display:none}.ui_color_cont{display:flex;align-items:center;justify-content:space-between}.ui_color_cont .ui_label{margin:0}.ui_color{cursor:pointer;padding:0;margin:0;border:none;background:none;height:22px;width:22px}`;
+    static css = `.ui_main.theme-light{--border:#aaa;--back:#fff;--mid:#ccc;--tab:#f0f0f0;--font:#000;--font-mid:#555;--thumb:var(--back);--range_f:var(--mid);--joy_s:var(--mid)}.ui_main.theme-dark{--border:#4d5359;--back:#1e232a;--mid:#22272E;--tab:#2D333B;--font:#ccc;--font-mid:#999;--thumb:var(--font-mid);--range_f:#676e75;--joy_s:var(--thumb)}.ui_main{background-color:var(--mid);text-align:left;font:12px sans-serif;user-select:none;border:none;border-radius:6px}.ui_main.noback{background:none}.ui_main.noback .ui_widget{border:1px solid var(--mid);margin:5px 0}.ui_main.noback .ui_title_bar{display:none}.ui_main.noback .ui_button_cont{margin:5px 0}.ui_main.noback .ui_button{border:1px solid var(--mid)}.ui_content{overflow-y:auto;border-radius:6px}.ui_title_bar{text-align:center;font-weight:700;border:none;background:var(--tab);color:var(--font);font-size:15px;border-radius:5px 5px 0 0}.ui_title_bar:not(:empty){padding:4px}.ui_widget{margin:5px;padding:5px;border:none;position:relative;background:var(--tab);color:var(--font);border-radius:5px}.ui_widget.hidden{display:none}.ui_range_cont{display:flex;align-items:center;padding:10px 0 6px 0}.ui_range{appearance:none;box-sizing:border-box;margin:0;padding:0;width:100%;height:2px;background:var(--border);cursor:pointer;touch-action:none}.ui_range:focus{background:var(--range_f)}.ui_range::-webkit-slider-thumb{appearance:none;background:var(--thumb);width:16px;height:16px;border-radius:50%;box-shadow:0 0 4px #0000005a}.ui_range::-moz-range-thumb{border:none;background:var(--thumb);width:16px;height:16px;border-radius:50%}.ui_button_cont{margin:5px;gap:5px;display:flex}.ui_button_cont.hidden{display:none}.ui_button{cursor:pointer;background:var(--tab);color:var(--font-mid);height:26px;border-radius:4px;width:100%;border:none}.ui_button:hover{filter:brightness(.96)}.ui_button:active{background:var(--back)}.ui_checkbox_cont{cursor:pointer;display:flex;align-items:center;justify-content:space-between}.ui_checkbox_cont label{font-weight:700;pointer-events:none}.ui_checkbox{display:inline-block}.ui_checkbox label{display:flex;align-items:center;cursor:pointer;user-select:none}.ui_checkbox input{display:none}.ui_checkbox span{width:18px;height:18px;border:1px solid var(--border);border-radius:4px;background-color:var(--back);position:relative}.ui_checkbox input:checked+span::after{content:"✓";position:absolute;left:3px;top:-2px;font-size:16px;color:var(--font);font-weight:700}.ui_label{user-select:none;-webkit-user-select:none;cursor:default}.ui_input_base{width:100%;box-sizing:border-box;background:var(--back);outline:none;color:var(--font-mid);border:1px solid var(--border);transition:border-color 0.1s;border-radius:4px;margin-top:4px}.ui_input_base:focus{border-color:var(--font-mid)}.ui_input{height:24px;padding:5px;line-height:24px}.ui_select{height:24px;padding:0 2px;cursor:pointer}.ui_textarea{resize:vertical;padding:3px 5px}.ui_textarea::-webkit-scrollbar{width:7px;height:7px}.ui_textarea::-webkit-scrollbar-track{background:none}.ui_textarea::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}.ui_file_chooser_label{padding:5px;height:24px;display:block;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.ui_file_chooser_label.active{border-color:var(--font-mid)}.ui_file_chooser{display:none}.ui_color_cont{display:flex;align-items:center;justify-content:space-between}.ui_color_cont .ui_label{margin:0}.ui_color{cursor:pointer;padding:0;margin:0;border:none;background:none;height:22px;width:22px}.ui_joystick{position:relative;display:block;width:min(100%, 140px);height:auto;aspect-ratio:1;box-sizing:border-box;margin:8px auto 4px;border:1px solid var(--border);border-radius:50%;background:var(--back);cursor:pointer;touch-action:none}.ui_joystick::before,.ui_joystick::after{content:'';position:absolute;background:var(--border);opacity:.4;pointer-events:none;z-index:0}.ui_joystick::before{width:1px;height:100%;left:50%}.ui_joystick::after{width:100%;height:1px;top:50%}.ui_joystick_stick{position:absolute;left:50%;top:50%;width:52px;height:52px;box-sizing:border-box;border-radius:50%;background:var(--joy_s);border:1px solid var(--border);transform:translate(-50%,-50%);pointer-events:none;z-index:1}.ui_progress_label{display:flex;align-items:center;justify-content:space-between;gap:5px}.ui_progress_label span{color:var(--font-mid);font-variant-numeric:tabular-nums}.ui_progress{height:8px;margin-top:6px;background:var(--back);border:1px solid var(--border);border-radius:4px;overflow:hidden}.ui_progress_fill{width:0;height:100%;background:var(--joy_s)}.ui_group{padding:0;cursor:pointer}.ui_group_head{display:flex;align-items:center;justify-content:space-between;padding:7px 8px;gap:8px;color:var(--font);user-select:none}.ui_group:hover{filter:brightness(.97)}.ui_group_chevron{width:7px;height:7px;flex-shrink:0;border-right:2px solid var(--font-mid);border-bottom:2px solid var(--font-mid);transform:rotate(-45deg);transition:transform 0.15s;margin-right:3px}.ui_group_chevron.expanded{transform:rotate(45deg)}.ui_group_space{height:5px}.ui_widget.group_hidden{display:none}`;
 }
 
 const _str = x => String(x ?? '');
