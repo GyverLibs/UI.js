@@ -840,6 +840,7 @@ export default class UI {
         this._addSetGet(id);
         return this;
     }
+    addJoy = (...args) => this.addJoystick(...args);
 
     // MARK: addArea
 
