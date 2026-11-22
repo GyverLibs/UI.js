@@ -1,3 +1,4 @@
+
 import { addCSS, EL, State } from '@alexgyver/component';
 import { DeferredEmitter } from '@alexgyver/utils';
 // import './UI.css'
@@ -6,7 +7,7 @@ import { DeferredEmitter } from '@alexgyver/utils';
 class Widget {
     constructor(value, label, callback, type) {
         this._default = value;
-        this._state = new State({ value, label, hidden: false, groupHidden: false });
+        this._state = new State({ value, label, color: null, hidden: false, groupHidden: false });
         this._cb = callback;
         this._type = type;
     }
@@ -18,6 +19,12 @@ class Widget {
     }
     set label(v) {
         return this._state.label = v;
+    }
+    get color() {
+        return this._state.color;
+    }
+    set color(v) {
+        this._state.color = v;
     }
     get value() {
         return this._state.value;
@@ -51,8 +58,8 @@ class Widget {
     }
 }
 class WidgetSelect extends Widget {
-    constructor(value, label) {
-        super(value, label);
+    constructor(value, label, callback) {
+        super(value, label, callback, 'select');
     }
     set options(options) {
         this._state.options = _getOptions(options);
@@ -74,9 +81,14 @@ class WidgetSelect extends Widget {
         if (this._cb) this._cb(this.value, this.valueText);
     }
 }
-class WidgetColor extends Widget {
+class WidgetLabel extends Widget {
     constructor(value, label) {
-        super(value, label);
+        super(value, label, null, 'label');
+    }
+}
+class WidgetColor extends Widget {
+    constructor(value, label, callback) {
+        super(value, label, callback, 'color');
     }
     set valueInt(v) {
         v = Math.max(0, Math.min(0xffffff, v | 0));
@@ -87,8 +99,8 @@ class WidgetColor extends Widget {
     }
 }
 class WidgetFile extends Widget {
-    constructor(value, label) {
-        super(value, label);
+    constructor(value, label, callback) {
+        super(value, label, callback, 'file');
         this._state.addStates({ filename: '...', active: false });
     }
 }
@@ -937,7 +949,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new WidgetSelect(0, label);
+        const w = new WidgetSelect(0, label, callback);
         w._state.addStates({ options: _getOptions(value) });
 
         EL.make('div', this._getContainer(w, {
@@ -1053,7 +1065,7 @@ export default class UI {
             if (callback) callback(v);
         }
 
-        const w = new WidgetFile(null, label);
+        const w = new WidgetFile(null, label, callback);
 
         let cont = EL.make('div', this._getContainer(w, [
             {
@@ -1100,7 +1112,7 @@ export default class UI {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new WidgetColor(_color(value), label);
+        const w = new WidgetColor(_color(value), label, callback);
 
         let cont = EL.make('div', this._getContainer(w, null, true));
 
@@ -1136,11 +1148,12 @@ export default class UI {
      * @param {string} value 
      * @returns {UI}
      */
-    addLabel(id, label, value) {
+    addLabel(id, label, value, color = null) {
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new Widget(_str(value), label, null, 'label');
+        const w = new WidgetLabel(_str(value), label);
+        w.color = color;
 
         EL.make('div', this._getContainer(w, null, true));
 
@@ -1226,6 +1239,7 @@ export default class UI {
                     },
                     out && {
                         tag: 'span',
+                        style: { color: w._state.bind('color') },
                         text: w._state.bind('value'),
                     }
                 ]

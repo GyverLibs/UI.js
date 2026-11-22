@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .addSwitch('switch', 'Switch', 0)
         .addArea('area', 'Area', 'abc')
         .addColor('color', 'Color')
-        .addLabel('label', 'Text', 'Value')
+        .addLabel('label', 'Text', 'Value', 'red')
         .addButtons({ 'btn1': ['Button 1', null], 'btn2': 'Button 2' })
         .addButton('button', 'Button')
         .addJoystick('joy', 'Joy', false)
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(val, t);
         console.log(ui.widget('select').text);
         console.log(ui.widget('select').options);
+        console.log(ui.widget('label').color = 'green');
     }
 
     // ui.removeAll();
