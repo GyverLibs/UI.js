@@ -177,9 +177,10 @@ class WidgetProgress extends Widget {
     }
 }
 class WidgetGroup extends Widget {
-    constructor(ui, label, expanded = true) {
-        super(null, label, null, 'group');
+    constructor(ui, id, label, expanded = false, callback) {
+        super(expanded, label, callback, 'group');
         this._ui = ui;
+        this._id = id;
         this.ids = new Set();
         this.nodes = [];
         this._state.addStates({ expanded: Boolean(expanded) });
@@ -190,14 +191,35 @@ class WidgetGroup extends Widget {
     }
 
     set expanded(v) {
-        this._state.expanded = Boolean(v);
+        v = Boolean(v);
+        if (this.expanded === v) return;
+
+        if (v && this._ui._accordion) {
+            for (const w of this._ui._widgets.values()) {
+                if (w instanceof WidgetGroup && w !== this) w.close();
+            }
+        }
+
+        this._state.expanded = v;
+        this._state.value = v;
 
         for (const id of this.ids) {
             const w = this._ui.widget(id);
-            if (w) w._state.groupHidden = !this.expanded;
+            if (w) w._state.groupHidden = !v;
         }
 
-        for (const node of this.nodes) node.style.display = this.expanded ? '' : 'none';
+        for (const node of this.nodes) node.style.display = v ? '' : 'none';
+
+        this._ui._cb(this._id, v);
+        if (this._cb) this._cb(v);
+    }
+
+    get value() {
+        return this.expanded;
+    }
+
+    set value(v) {
+        this.expanded = v;
     }
 
     open() {
@@ -328,6 +350,22 @@ export default class UI {
      */
     useWheel(use) {
         this._wheel = use;
+    }
+
+    /**
+     * @param {boolean} enabled
+     * @returns {UI}
+     */
+    setAccordion(enabled) {
+        this._accordion = Boolean(enabled);
+
+        if (this._accordion) {
+            for (const w of this._widgets.values()) {
+                if (w instanceof WidgetGroup) w.close();
+            }
+        }
+
+        return this;
     }
 
     /**
@@ -499,13 +537,13 @@ export default class UI {
      * @param {boolean} expanded
      * @returns {UI}
      */
-    beginGroup(id, label, expanded = false) {
+    beginGroup(id, label, expanded, callback) {
         if (this._group) throw new Error('UI.beginGroup: nested groups are not supported');
 
         id = this._checkID(id);
         if (this._widgets.has(id)) return this;
 
-        const w = new WidgetGroup(this, label, expanded);
+        const w = new WidgetGroup(this, id, label, expanded, callback);
 
         EL.make('div', this._getWidget(w, {
             class: 'ui_group_head',
@@ -524,6 +562,13 @@ export default class UI {
 
         this._widgets.set(id, w);
         this._group = w;
+
+        // close old
+        if (expanded && this._accordion) {
+            for (const other of this._widgets.values()) {
+                if (other instanceof WidgetGroup && other !== w) other.close();
+            }
+        }
 
         return this;
     }
@@ -548,14 +593,14 @@ export default class UI {
     /**
      * @param {string} id
      * @param {string} label
-     * @param {function} callback
+     * @param {function} builder
      * @param {boolean} expanded
      * @returns {UI}
      */
-    addGroup(id, label, callback, expanded = false) {
-        this.beginGroup(id, label, expanded);
+    addGroup(id, label, builder, expanded, callback) {
+        this.beginGroup(id, label, expanded, callback);
         try {
-            if (callback) callback(this);
+            if (builder) builder(this);
         } finally {
             this.endGroup();
         }
@@ -756,7 +801,8 @@ export default class UI {
                 class: 'ui_progress',
                 child: {
                     class: 'ui_progress_fill',
-                    $: 'fill'
+                    $: 'fill',
+                    style: { backgroundColor: w._state.bind('color') }
                 }
             }
         ]));
@@ -1277,6 +1323,7 @@ export default class UI {
     }
 
     _wheel = true;
+    _accordion = false;
     _widgets = new Map();
     _before = null;
     _count = 0;
