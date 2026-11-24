@@ -440,3 +440,13 @@
 .ui_widget.group_hidden {
     display: none;
 }
+
+/* ========= title ========= */
+
+.ui_section_title {
+    padding: 6px 5px 0px;
+    background: none;
+    color: var(--font-mid);
+    font-size: 13px;
+    text-align: center;
+}

@@ -71,6 +71,7 @@ addLabel(id, label, value);
 addSpace(height = 5);
 addButton(id, label, callback);
 addButtons(buttons);             // { id: [label, callback] } или { id: label }
+addTitle(id, label);
 
 // группы
 addGroup(id, label, callback, expanded = false);
